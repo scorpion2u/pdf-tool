@@ -512,7 +512,6 @@
         <button class="menu-button" id="menuButton" aria-label="菜单">☰</button>
         <div class="menu-dropdown" id="menuDropdown">
           <div class="menu-item" id="installAppBtn">📱 安装应用</div>
-          <div class="menu-item" id="downloadApkBtn">📦 下载APK</div>
           <div class="menu-item" id="languageMenuItem">🌐 语言 / Language</div>
         </div>
       </div>
@@ -787,8 +786,6 @@
         const ib = document.getElementById('installAppBtn');
         if (ib) ib.textContent = isRunningAsPWA() ? t('installedApp') : (window._deferredPrompt ? t(
           'installApp') : t('addToHome'));
-        const ab = document.getElementById('downloadApkBtn');
-        if (ab) ab.textContent = t('downloadApk');
         const lb = document.getElementById('languageMenuItem');
         if (lb) lb.textContent = t('language');
       }
@@ -1522,11 +1519,6 @@
       document.getElementById('installAppBtn').addEventListener('click', function() {
         document.getElementById('menuDropdown').classList.remove('show');
         installPWA();
-      });
-
-      document.getElementById('downloadApkBtn').addEventListener('click', function() {
-        document.getElementById('menuDropdown').classList.remove('show');
-        window.open('https://scorpion2u.github.io/pdf-tool/pdf_tool.apk', '_blank');
       });
 
       document.getElementById('languageMenuItem').addEventListener('click', function() {

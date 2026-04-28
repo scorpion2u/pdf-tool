@@ -1195,42 +1195,21 @@
       }
 
       function download(blob, name) {
-    // 检测是否在 Android WebView 中
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isWebView = /wv/.test(navigator.userAgent) || 
-                      /WebView/.test(navigator.userAgent);
-    
-    if (isAndroid && isWebView) {
-        // ========== Android WebView：不需要原生接口的方案 ==========
-        const reader = new FileReader();
-        reader.onload = function() {
-            const dataUrl = reader.result;
-            
-            // 方案1：直接在当前窗口打开（浏览器会尝试下载）
-            // 创建一个隐藏的 iframe 来触发下载
-            try {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = dataUrl;
-                document.body.appendChild(iframe);
-                setTimeout(() => document.body.removeChild(iframe), 5000);
-                
-                // 同时显示提示
-                showDownloadTip(name);
-            } catch(e) {
-                // 方案2：打开新标签页
-                try {
-                    window.open(dataUrl, '_blank');
-                    showDownloadTip(name);
-                } catch(e2) {
-                    // 方案3：直接跳转
-                    window.location.href = dataUrl;
-                }
-            }
-        };
-        reader.readAsDataURL(blob);
-    } else {
-        // ========== 普通浏览器 ==========
+    // 使用 FileReader 转 data URL（最兼容）
+    const reader = new FileReader();
+    reader.onload = function() {
+        const a = document.createElement('a');
+        a.href = reader.result;
+        a.download = name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+        }, 200);
+    };
+    reader.onerror = function() {
+        // 如果 FileReader 也失败，尝试 Blob URL
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1242,37 +1221,8 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }, 200);
-    }
-}
-
-// 显示下载提示
-function showDownloadTip(fileName) {
-    const tip = document.createElement('div');
-    tip.style.cssText = `
-        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-        background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px;
-        font-size: 14px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        animation: fadeInOut 3s ease;
-    `;
-    tip.textContent = `✅ ${fileName} 正在下载，请查看通知栏`;
-    
-    // 添加动画样式
-    if (!document.getElementById('downloadTipStyle')) {
-        const style = document.createElement('style');
-        style.id = 'downloadTipStyle';
-        style.textContent = `
-            @keyframes fadeInOut {
-                0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
-                15% { opacity: 1; transform: translateX(-50%) translateY(0); }
-                85% { opacity: 1; transform: translateX(-50%) translateY(0); }
-                100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(tip);
-    setTimeout(() => tip.remove(), 3000);
+    };
+    reader.readAsDataURL(blob);
 }
 
       function parseRange(s, total) {

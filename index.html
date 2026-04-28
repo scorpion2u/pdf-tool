@@ -1195,15 +1195,35 @@
       }
 
       function download(blob, name) {
-        const u = URL.createObjectURL(blob);
+    // 使用 FileReader 转 data URL（最兼容）
+    const reader = new FileReader();
+    reader.onload = function() {
         const a = document.createElement('a');
-        a.href = u;
+        a.href = reader.result;
         a.download = name;
+        a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(u);
-      }
+        setTimeout(() => {
+            document.body.removeChild(a);
+        }, 200);
+    };
+    reader.onerror = function() {
+        // 如果 FileReader 也失败，尝试 Blob URL
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 200);
+    };
+    reader.readAsDataURL(blob);
+}
 
       function parseRange(s, total) {
         const set = new Set();

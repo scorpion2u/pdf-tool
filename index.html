@@ -484,6 +484,51 @@
       font-weight: 500;
       font-size: 0.85rem;
     }
+    /* 水印设置样式 */
+    .watermark-settings {
+      margin-top: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .watermark-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .watermark-row label {
+      font-weight: 500;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      min-width: 60px;
+    }
+    .watermark-row input[type="text"] {
+      flex: 1;
+      min-width: 150px;
+      padding: 0.5rem 0.8rem;
+      border-radius: 2rem;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+    .watermark-row input[type="range"] {
+      flex: 1;
+      min-width: 80px;
+    }
+    .watermark-row select {
+      flex: 1;
+      min-width: 100px;
+      padding: 0.5rem;
+      border-radius: 2rem;
+      border: 1px solid #d1d5db;
+      font-size: 0.8rem;
+    }
+    .watermark-row .range-value {
+      font-size: 0.75rem;
+      color: #64748b;
+      min-width: 30px;
+      text-align: center;
+    }
     @media (max-width: 600px) {
       .container {
         padding: 1.2rem 0.8rem;
@@ -523,7 +568,7 @@
       <button class="tool-btn" data-tool="split"><span class="tool-icon">✂️</span><span class="tool-label">拆分PDF</span></button>
       <button class="tool-btn" data-tool="merge"><span class="tool-icon">🔗</span><span class="tool-label">合并PDF</span></button>
       <button class="tool-btn" data-tool="compress"><span class="tool-icon">📦</span><span class="tool-label">压缩PDF</span></button>
-      <button class="tool-btn" data-tool="extract"><span class="tool-icon">🖼️</span><span class="tool-label">提取图片</span></button>
+      <button class="tool-btn" data-tool="watermark"><span class="tool-icon">💧</span><span class="tool-label">添加水印</span></button>
       <button class="tool-btn" data-tool="extractPages"><span class="tool-icon">📑</span><span class="tool-label">提取页面</span></button>
       <button class="tool-btn" data-tool="pdfToImages"><span class="tool-icon">🔄</span><span class="tool-label">PDF转图片</span></button>
       <button class="tool-btn" data-tool="imagesToPdf"><span class="tool-icon">📸</span><span class="tool-label">图片转PDF</span></button>
@@ -546,7 +591,7 @@
           split: '拆分PDF',
           removePassword: '删除密码',
           compress: '压缩PDF',
-          extract: '提取图片',
+          watermark: '添加水印',
           extractPages: '提取页面',
           pdfToImages: 'PDF转图片',
           imagesToPdf: '图片转PDF',
@@ -585,7 +630,19 @@
           balanced: '平衡',
           highQuality: '高质量',
           startCompress: '📦 压缩PDF',
-          extractImagesBtn: '🖼️ 提取图片',
+          watermarkLabel: '💧 添加水印',
+          watermarkText: '水印文字：',
+          watermarkTextPlaceholder: '输入水印文字',
+          watermarkPosition: '位置：',
+          positionCenter: '中间',
+          positionTop: '上方',
+          positionBottom: '下方',
+          positionFull: '全屏铺满',
+          watermarkAngle: '角度：',
+          watermarkOpacity: '透明度：',
+          watermarkSize: '大小：',
+          startWatermark: '💧 添加水印并下载',
+          watermarkInfo: '在PDF每一页添加文字水印，支持自定义位置、角度、透明度和大小。',
           extractPagesLabel: '📑 提取页面',
           extractRange: '提取范围：',
           rangeInfo: '输入要提取的页码范围，如 1-3,5 表示提取第1到3页和第5页。',
@@ -607,7 +664,7 @@
           wrongPassword: '密码错误',
           mergeSuccess: '合并完成',
           splitSuccess: '拆分完成',
-          extractSuccess: '提取完成',
+          watermarkSuccess: '水印添加完成',
           compressSuccess: '压缩完成',
           convertSuccess: '转换完成',
           composeSuccess: '合成完成',
@@ -638,7 +695,7 @@
           selectPdfSplit: '选择一个PDF用于拆分',
           selectPdfRemovePwd: '选择要删除密码的PDF',
           selectPdfCompress: '选择要压缩的PDF',
-          selectPdfExtract: '选择PDF提取图片',
+          selectPdfWatermark: '选择一个PDF添加水印',
           selectPdfExtractPages: '选择一个PDF提取页面',
           selectPdfToImages: '选择一个PDF转为图片',
           selectImagesToPdf: '选择图片合成PDF',
@@ -652,7 +709,7 @@
           split: 'Split PDF',
           removePassword: 'Remove Password',
           compress: 'Compress PDF',
-          extract: 'Extract Images',
+          watermark: 'Add Watermark',
           extractPages: 'Extract Pages',
           pdfToImages: 'PDF to Images',
           imagesToPdf: 'Images to PDF',
@@ -691,7 +748,19 @@
           balanced: 'Balanced',
           highQuality: 'High',
           startCompress: '📦 Compress PDF',
-          extractImagesBtn: '🖼️ Extract Images',
+          watermarkLabel: '💧 Add Watermark',
+          watermarkText: 'Text: ',
+          watermarkTextPlaceholder: 'Enter watermark text',
+          watermarkPosition: 'Position: ',
+          positionCenter: 'Center',
+          positionTop: 'Top',
+          positionBottom: 'Bottom',
+          positionFull: 'Full Page',
+          watermarkAngle: 'Angle: ',
+          watermarkOpacity: 'Opacity: ',
+          watermarkSize: 'Size: ',
+          startWatermark: '💧 Add Watermark & Download',
+          watermarkInfo: 'Add text watermark to every page with custom position, angle, opacity and size.',
           extractPagesLabel: '📑 Extract Pages',
           extractRange: 'Page Range: ',
           rangeInfo: 'Enter page range, e.g. 1-3,5 extracts pages 1-3 and 5.',
@@ -713,7 +782,7 @@
           wrongPassword: 'Wrong Password',
           mergeSuccess: 'Merge Complete',
           splitSuccess: 'Split Complete',
-          extractSuccess: 'Extract Complete',
+          watermarkSuccess: 'Watermark Added',
           compressSuccess: 'Compress Complete',
           convertSuccess: 'Convert Complete',
           composeSuccess: 'Compose Complete',
@@ -744,7 +813,7 @@
           selectPdfSplit: 'Select a PDF to split',
           selectPdfRemovePwd: 'Select PDFs to remove password',
           selectPdfCompress: 'Select a PDF to compress',
-          selectPdfExtract: 'Select a PDF to extract images',
+          selectPdfWatermark: 'Select a PDF to add watermark',
           selectPdfExtractPages: 'Select a PDF to extract pages',
           selectPdfToImages: 'Select a PDF to convert',
           selectImagesToPdf: 'Select images to compose',
@@ -772,7 +841,7 @@
       function updateAllTexts() {
         document.querySelector('h1').textContent = t('menuTitle');
         document.querySelector('.subtitle').textContent = t('subtitle');
-        const labels = ['removePassword', 'split', 'merge', 'compress', 'extract', 'extractPages', 'pdfToImages',
+        const labels = ['removePassword', 'split', 'merge', 'compress', 'watermark', 'extractPages', 'pdfToImages',
           'imagesToPdf'
         ];
         document.querySelectorAll('.tool-btn .tool-label').forEach((el, i) => {
@@ -967,47 +1036,6 @@
         return { pageImages: await renderPdfToImages(file, password, getRenderOptions()), isEncrypted: needsPwd };
       }
 
-      async function extractImages(file, password = '') {
-        const arrayBuf = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuf, password: password || undefined });
-        return new Promise((resolve, reject) => {
-          loadingTask.onPassword = (_, reason) => {
-            if (reason === 1) reject(new Error('NEED_PASSWORD'));
-            else if (reason === 2) reject(new Error('INCORRECT_PASSWORD'));
-          };
-          loadingTask.promise.then(async (pdf) => {
-            const images = [];
-            for (let p = 1; p <= pdf.numPages; p++) {
-              const page = await pdf.getPage(p);
-              const ops = await page.getOperatorList();
-              for (let i = 0; i < ops.fnArray.length; i++) {
-                if (ops.fnArray[i] === pdfjsLib.OPS.paintImageXObject || ops.fnArray[i] === pdfjsLib.OPS
-                  .paintInlineImageXObject) {
-                  try {
-                    const imgData = await page.objs.get(ops.argsArray[i][0]);
-                    if (imgData?.data) {
-                      const canvas = document.createElement('canvas');
-                      canvas.width = imgData.width;
-                      canvas.height = imgData.height;
-                      const ctx = canvas.getContext('2d');
-                      const id = ctx.createImageData(imgData.width, imgData.height);
-                      id.data.set(imgData.data);
-                      ctx.putImageData(id, 0, 0);
-                      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-                      images.push({ blob, pageNum: p, index: images.length + 1 });
-                    }
-                  } catch (e) {}
-                }
-              }
-            }
-            resolve(images);
-          }).catch(err => {
-            if (err.name === 'PasswordException') reject(new Error('INCORRECT_PASSWORD'));
-            else reject(err);
-          });
-        });
-      }
-
       function handleError(err, idx) {
         const entry = fileEntries[idx];
         if (!entry) return;
@@ -1030,7 +1058,7 @@
           split: buildSplitUI,
           removePassword: buildRemovePwdUI,
           compress: buildCompressUI,
-          extract: buildExtractUI,
+          watermark: buildWatermarkUI,
           extractPages: buildExtractPagesUI,
           pdfToImages: buildPdfToImagesUI,
           imagesToPdf: buildImagesToPdfUI
@@ -1041,7 +1069,7 @@
       }
 
       function fileDropArea(multiple, title, accept = '.pdf') {
-        const iconMap = { merge: '📎', split: '✂️', removePassword: '🔓', compress: '📦', extract: '🖼️', extractPages: '📑',
+        const iconMap = { merge: '📎', split: '✂️', removePassword: '🔓', compress: '📦', watermark: '💧', extractPages: '📑',
           pdfToImages: '🔄', imagesToPdf: '📸' };
         return `<div class="file-area" id="fileArea"><div class="file-icon">${iconMap[currentTool]||'📂'}</div><div class="file-label">${title}</div><div class="file-hint">${multiple ? t('supportMulti') : t('supportSingle')} (${accept})</div><input type="file" id="fileAreaInput" class="file-input" accept="${accept}" ${multiple ? 'multiple' : ''}></div><div id="fileAreaList" class="file-list"></div>`;
       }
@@ -1062,8 +1090,47 @@
         return `${fileDropArea(false, t('selectPdfCompress'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="quality-selector"><label>${t('clarity')}</label><select id="renderScale"><option value="1.0" selected>${t('sd')}</option><option value="1.5">${t('hd')}</option><option value="2.0">${t('uhd')}</option></select><label>${t('quality')}</label><select id="jpegQuality"><option value="0.5">${t('maxCompress')}</option><option value="0.6" selected>${t('saveSpace')}</option><option value="0.75">${t('balanced')}</option><option value="0.85">${t('highQuality')}</option></select></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startCompress')}</button></div>`;
       }
 
-      function buildExtractUI() {
-        return `${fileDropArea(false, t('selectPdfExtract'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('extractImagesBtn')}</button></div>`;
+      function buildWatermarkUI() {
+        return `${fileDropArea(false, t('selectPdfWatermark'))}
+        <div id="globalPwdSection" class="password-section" style="display:none;">
+          <span>${t('passwordSingle')}</span>
+          <input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}">
+          <button class="toggle-pwd" data-target="globalPassword">${t('show')}</button>
+        </div>
+        <div class="watermark-settings">
+          <div class="watermark-row">
+            <label>${t('watermarkText')}</label>
+            <input type="text" id="watermarkText" value="${t('watermarkTextPlaceholder')}">
+          </div>
+          <div class="watermark-row">
+            <label>${t('watermarkPosition')}</label>
+            <select id="watermarkPosition">
+              <option value="center">${t('positionCenter')}</option>
+              <option value="top">${t('positionTop')}</option>
+              <option value="bottom">${t('positionBottom')}</option>
+              <option value="full" selected>${t('positionFull')}</option>
+            </select>
+          </div>
+          <div class="watermark-row">
+            <label>${t('watermarkAngle')}</label>
+            <input type="range" id="watermarkAngle" min="0" max="90" value="45">
+            <span class="range-value" id="angleVal">45°</span>
+          </div>
+          <div class="watermark-row">
+            <label>${t('watermarkOpacity')}</label>
+            <input type="range" id="watermarkOpacity" min="0.05" max="1" step="0.05" value="0.1">
+            <span class="range-value" id="opacityVal">0.1</span>
+          </div>
+          <div class="watermark-row">
+            <label>${t('watermarkSize')}</label>
+            <input type="range" id="watermarkSize" min="10" max="100" value="40">
+            <span class="range-value" id="sizeVal">40</span>
+          </div>
+        </div>
+        <div class="highlight-box"><span>💧</span><div>${t('watermarkInfo')}</div></div>
+        <div class="btn-group">
+          <button class="btn-primary" id="actionBtn">${t('startWatermark')}</button>
+        </div>`;
       }
 
       function buildExtractPagesUI() {
@@ -1193,35 +1260,33 @@
       }
 
       function download(blob, name) {
-    // 使用 FileReader 转 data URL（最兼容）
-    const reader = new FileReader();
-    reader.onload = function() {
-        const a = document.createElement('a');
-        a.href = reader.result;
-        a.download = name;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = function() {
+          const a = document.createElement('a');
+          a.href = reader.result;
+          a.download = name;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
             document.body.removeChild(a);
-        }, 200);
-    };
-    reader.onerror = function() {
-        // 如果 FileReader 也失败，尝试 Blob URL
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = name;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
+          }, 200);
+        };
+        reader.onerror = function() {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        }, 200);
-    };
-    reader.readAsDataURL(blob);
-}
+          }, 200);
+        };
+        reader.readAsDataURL(blob);
+      }
 
       function parseRange(s, total) {
         const set = new Set();
@@ -1287,6 +1352,22 @@
           const w = document.getElementById('rangeInputWrap');
           if (w) w.style.display = e.target.value === 'range' ? 'block' : 'none';
         });
+        // 水印滑块事件
+        const angleEl = document.getElementById('watermarkAngle');
+        const opacityEl = document.getElementById('watermarkOpacity');
+        const sizeEl = document.getElementById('watermarkSize');
+        if (angleEl) angleEl.oninput = () => {
+          const v = document.getElementById('angleVal');
+          if (v) v.textContent = angleEl.value + '°';
+        };
+        if (opacityEl) opacityEl.oninput = () => {
+          const v = document.getElementById('opacityVal');
+          if (v) v.textContent = opacityEl.value;
+        };
+        if (sizeEl) sizeEl.oninput = () => {
+          const v = document.getElementById('sizeVal');
+          if (v) v.textContent = sizeEl.value;
+        };
         document.getElementById('actionBtn')?.addEventListener('click', () => executeAction(0));
       }
 
@@ -1301,7 +1382,7 @@
             split: doSplit,
             removePassword: () => doRemovePassword(startIdx),
             compress: doCompress,
-            extract: doExtract,
+            watermark: doWatermark,
             extractPages: doExtractPages,
             pdfToImages: doPdfToImages,
             imagesToPdf: doImagesToPdf
@@ -1383,19 +1464,83 @@
         setStatus(`✅ ${t('compressSuccess')}`, 'success');
       }
 
-      async function doExtract() {
-        const images = await extractImages(fileEntries[0].file, getPasswordForFile(0));
-        if (!images.length) {
-          setStatus(t('noFile'), 'warn');
-          return;
+      async function doWatermark() {
+        setProgress(0, t('processing'));
+        const { PDFDocument, StandardFonts, degrees } = PDFLib;
+        
+        // 获取水印参数
+        const text = document.getElementById('watermarkText')?.value || 'WATERMARK';
+        const position = document.getElementById('watermarkPosition')?.value || 'full';
+        const angleVal = parseFloat(document.getElementById('watermarkAngle')?.value || '45');
+        const opacityVal = parseFloat(document.getElementById('watermarkOpacity')?.value || '0.1');
+        const fontSize = parseInt(document.getElementById('watermarkSize')?.value || '40');
+
+        // 加载PDF
+        const arrayBuf = await fileEntries[0].file.arrayBuffer();
+        
+        // 处理加密PDF
+        const needsPwd = await checkEncrypted(fileEntries[0].file);
+        let pdfDoc;
+        
+        if (needsPwd) {
+          const password = getPasswordForFile(0);
+          if (!password) {
+            setStatus(t('needPassword'), 'warn');
+            return;
+          }
+          // 对于加密PDF，使用pdf-lib加载（pdf-lib也支持加密PDF）
+          pdfDoc = await PDFDocument.load(arrayBuf, { password });
+        } else {
+          pdfDoc = await PDFDocument.load(arrayBuf);
         }
-        if (images.length === 1) download(images[0].blob, 'image.png');
-        else if (typeof JSZip !== 'undefined') {
-          const zip = new JSZip();
-          images.forEach(img => zip.file(`page${img.pageNum}_${img.index}.png`, img.blob));
-          download(await zip.generateAsync({ type: 'blob' }), 'images.zip');
-        } else images.forEach(img => download(img.blob, `page${img.pageNum}_${img.index}.png`));
-        setStatus(`✅ ${t('extractSuccess')} (${images.length})`, 'success');
+
+        const pages = pdfDoc.getPages();
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+        for (const page of pages) {
+          const { width, height } = page.getSize();
+          const textWidth = font.widthOfTextAtSize(text, fontSize);
+
+          function draw(x, y) {
+            page.drawText(text, {
+              x,
+              y,
+              size: fontSize,
+              font: font,
+              opacity: opacityVal,
+              rotate: degrees(angleVal)
+            });
+          }
+
+          if (position === 'center') {
+            draw(
+              (width - textWidth) / 2,
+              height / 2 - fontSize * 0.3
+            );
+          } else if (position === 'top') {
+            draw(
+              (width - textWidth) / 2,
+              height - fontSize * 1.5
+            );
+          } else if (position === 'bottom') {
+            draw(
+              (width - textWidth) / 2,
+              fontSize * 0.5
+            );
+          } else if (position === 'full') {
+            for (let x = 0; x < width + fontSize * 2; x += fontSize * 4) {
+              for (let y = 0; y < height + fontSize * 2; y += fontSize * 3) {
+                draw(x, y);
+              }
+            }
+          }
+        }
+
+        setProgress(80, t('generating'));
+        const pdfBytes = await pdfDoc.save();
+        setProgress(100);
+        download(new Blob([pdfBytes], { type: 'application/pdf' }), 'watermarked.pdf');
+        setStatus(`✅ ${t('watermarkSuccess')}`, 'success');
       }
 
       async function doExtractPages() {

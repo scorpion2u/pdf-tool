@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, shrink-to-fit=no">
   <title>多功能PDF工具</title>
   
-  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBERuW3peWFt+ebkiIsCiAgInNob3J0X25hbWUiOiAiUERGIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUyOTNiIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMjkzYiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImljb24tMTkyLnBuZyIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBERuW3peWFt+ebkiIsCiAgInNob3J0X25hbWUiOiAiUERGIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZTBlMGUwIiwKICAidGhlbWVfY29sb3IiOiAiI2UwZTBlMCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImljb24tMTkyLnBuZyIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
   
-  <meta name="theme-color" content="#1e293b">
+  <meta name="theme-color" content="#e0e0e0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PDF工具">
@@ -17,41 +17,60 @@
   <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
+    :root {
+      --bg: #e0e0e0;
+      --shadow-outer: 8px 8px 16px #bebebe, -8px -8px 16px #ffffff;
+      --shadow-outer-sm: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
+      --shadow-inner: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+      --shadow-inner-sm: inset 2px 2px 5px #bebebe, inset -2px -2px 5px #ffffff;
+      --shadow-convex: 6px 6px 12px #c8c8c8, -6px -6px 12px #ffffff;
+      --shadow-pressed: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+      --text-primary: #333333;
+      --text-secondary: #666666;
+      --text-muted: #999999;
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
-      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-      background: #f5f7fb;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Roboto, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 1.5rem;
     }
+
     .container {
       max-width: 860px;
       width: 100%;
-      background: #ffffff;
-      border-radius: 2rem;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.08);
+      background: var(--bg);
+      border-radius: 2.5rem;
+      box-shadow: 20px 20px 40px #bebebe, -20px -20px 40px #ffffff;
       padding: 2rem 1.8rem;
     }
+
     h1 {
       font-size: 2rem;
-      font-weight: 600;
-      color: #1a2639;
+      font-weight: 700;
+      color: var(--text-primary);
       margin-bottom: 0.3rem;
     }
+
     .subtitle {
-      color: #5b677b;
+      color: var(--text-secondary);
       margin-bottom: 1.2rem;
+      font-weight: 600;
       font-size: 0.9rem;
-      border-left: 4px solid #3b82f6;
+      border-left: 4px solid #888;
       padding-left: 1rem;
     }
+
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -61,84 +80,95 @@
     .top-bar .subtitle {
       margin-bottom: 0;
     }
+
     .menu-container {
       position: relative;
       z-index: 1000;
     }
+
     .menu-button {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      background: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      border: none;
+      background: var(--bg);
       cursor: pointer;
       font-size: 1.2rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: 0.2s;
+      transition: all 0.2s;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-outer-sm);
     }
-    .menu-button:hover {
-      background: #f1f5f9;
+    .menu-button:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.96);
     }
+
     .menu-dropdown {
       position: absolute;
-      top: 48px;
+      top: 52px;
       right: 0;
-      background: white;
-      border-radius: 16px;
+      background: var(--bg);
+      border-radius: 20px;
       width: 220px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+      box-shadow: 12px 12px 24px #bebebe, -8px -8px 16px #ffffff;
       display: none;
       z-index: 1001;
-      padding: 4px 0;
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 6px 0;
     }
     .menu-dropdown.show {
       display: block;
     }
+
     .menu-item {
-      padding: 12px 16px;
+      padding: 14px 20px;
       cursor: pointer;
-      font-size: 0.85rem;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      transition: background 0.1s;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: all 0.15s;
       user-select: none;
-    }
-    .menu-item:last-child {
-      border-bottom: none;
+      margin: 2px 8px;
+      border-radius: 14px;
     }
     .menu-item:hover {
-      background: rgba(0, 0, 0, 0.03);
+      box-shadow: var(--shadow-inner-sm);
     }
     .menu-item:active {
-      background: rgba(0, 0, 0, 0.06);
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.97);
     }
+
     .tools-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 0.6rem;
+      gap: 0.8rem;
       margin-bottom: 1.8rem;
     }
+
     .tool-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.3rem;
-      padding: 0.8rem 0.5rem;
-      border-radius: 1.2rem;
-      border: 2px solid transparent;
-      background: #f8fafc;
-      color: #475569;
+      gap: 0.4rem;
+      padding: 0.9rem 0.5rem;
+      border-radius: 1.4rem;
+      border: none;
+      background: var(--bg);
+      color: var(--text-secondary);
       cursor: pointer;
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 600;
       transition: all 0.2s;
       text-align: center;
+      box-shadow: var(--shadow-convex);
+      font-family: inherit;
     }
     .tool-btn .tool-icon {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       line-height: 1;
     }
     .tool-btn .tool-label {
@@ -146,120 +176,141 @@
       line-height: 1;
     }
     .tool-btn:hover {
-      background: #eef2ff;
-      border-color: #c7d2fe;
+      box-shadow: 8px 8px 16px #bebebe, -6px -6px 12px #ffffff;
+      transform: translateY(-1px);
+    }
+    .tool-btn:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.95);
     }
     .tool-btn.active {
-      background: #1e293b;
-      color: white;
-      border-color: #1e293b;
-      box-shadow: 0 4px 12px rgba(30, 41, 59, 0.25);
+      background: #e0e0e0;
+      color: #333333;
+      box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+      font-weight: 700;
     }
-    .tool-btn.active:hover {
-      background: #1e293b;
-    }
+
     .card {
-      background: #f9fafc;
-      border-radius: 1.5rem;
+      background: var(--bg);
+      border-radius: 1.8rem;
       padding: 1.5rem;
-      border: 1px solid #eef2f6;
+      box-shadow: var(--shadow-outer);
+      margin-bottom: 1rem;
     }
+
     .file-area {
-      border: 2px dashed #cbd5e1;
-      border-radius: 1.2rem;
+      border: none;
+      border-radius: 1.5rem;
       padding: 2rem 1rem;
       text-align: center;
-      background: #fff;
-      transition: 0.2s;
+      background: var(--bg);
+      transition: all 0.2s;
       margin-bottom: 1rem;
       cursor: pointer;
+      box-shadow: var(--shadow-inner);
     }
     .file-area:hover {
-      border-color: #3b82f6;
-      background: #f8faff;
+      box-shadow: inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff;
     }
     .file-area.dragover {
-      border-color: #2563eb;
-      background: #eef4ff;
+      box-shadow: inset 8px 8px 16px #bebebe, inset -8px -8px 16px #ffffff;
     }
+
     .file-input {
       display: none;
     }
+
     .file-icon {
-      font-size: 2rem;
-      margin-bottom: 0.3rem;
+      font-size: 2.2rem;
+      margin-bottom: 0.4rem;
     }
     .file-label {
-      font-weight: 500;
-      color: #1e293b;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 1rem;
     }
     .file-hint {
-      color: #64748b;
-      font-size: 0.75rem;
-      margin-top: 0.2rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      font-weight: 600;
     }
+
     .file-list-item {
       display: flex;
       align-items: center;
-      background: white;
-      padding: 0.7rem 1rem;
-      border-radius: 1rem;
-      margin: 0.4rem 0;
-      border: 1px solid #e9eef3;
+      background: var(--bg);
+      padding: 0.8rem 1rem;
+      border-radius: 1.2rem;
+      margin: 0.5rem 0;
       font-size: 0.85rem;
       gap: 0.5rem;
       min-width: 0;
+      box-shadow: var(--shadow-outer-sm);
+      transition: all 0.2s;
     }
+
     .drag-handle {
       cursor: grab;
-      color: #94a3b8;
-      font-size: 1.1rem;
+      color: var(--text-muted);
+      font-size: 1.2rem;
       padding: 0 0.2rem;
       user-select: none;
       flex-shrink: 0;
+      font-weight: 700;
     }
+
     .file-info {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
       flex: 1;
       min-width: 0;
       overflow: hidden;
     }
+
     .file-idx {
-      background: #e2e8f0;
-      color: #475569;
+      background: var(--bg);
+      color: var(--text-primary);
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
-      font-weight: 700;
+      font-size: 0.75rem;
+      font-weight: 800;
       flex-shrink: 0;
+      box-shadow: var(--shadow-inner-sm);
     }
+
     .file-name {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
+      color: var(--text-primary);
+      font-weight: 600;
     }
     .file-size {
       font-size: 0.7rem;
-      color: #64748b;
+      color: var(--text-muted);
       white-space: nowrap;
       flex-shrink: 0;
+      font-weight: 600;
     }
+
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 0.2rem;
-      padding: 0.15rem 0.5rem;
+      padding: 0.2rem 0.6rem;
       border-radius: 1rem;
       font-size: 0.7rem;
       white-space: nowrap;
       flex-shrink: 0;
+      font-weight: 700;
+      box-shadow: var(--shadow-outer-sm);
     }
     .badge-encrypted {
       background: #fef3c7;
@@ -277,221 +328,290 @@
       background: #e0e7ff;
       color: #3730a3;
     }
+
     .file-actions {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
       flex-shrink: 0;
     }
+
     .pwd-input {
       width: 100px;
-      padding: 0.35rem 0.5rem;
+      padding: 0.4rem 0.6rem;
       border-radius: 1.5rem;
-      border: 1px solid #fbbf24;
+      border: none;
       font-size: 0.75rem;
       background: #fffbeb;
       flex-shrink: 0;
+      box-shadow: var(--shadow-inner-sm);
+      color: #92400e;
+      font-weight: 600;
     }
     .pwd-input.error {
-      border-color: #ef4444 !important;
+      box-shadow: inset 2px 2px 5px #fecaca, inset -2px -2px 5px #ffffff;
+      background: #fef2f2;
     }
+
     .btn-icon {
-      background: none;
+      background: var(--bg);
       border: none;
       cursor: pointer;
       font-size: 1rem;
-      padding: 0.2rem;
-      border-radius: 0.5rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.7rem;
       flex-shrink: 0;
+      box-shadow: var(--shadow-outer-sm);
+      color: var(--text-primary);
+      font-weight: 700;
+      transition: all 0.15s;
     }
-    .btn-icon:hover {
-      background: #fee2e2;
+    .btn-icon:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.93);
     }
+
     .btn-retry {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
+      background: var(--bg);
+      border: none;
       color: #b91c1c;
-      padding: 0.15rem 0.5rem;
+      padding: 0.25rem 0.6rem;
       border-radius: 1rem;
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       cursor: pointer;
       flex-shrink: 0;
+      font-weight: 700;
+      box-shadow: var(--shadow-outer-sm);
     }
+    .btn-retry:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.93);
+    }
+
     .btn-group {
       display: flex;
-      gap: 0.6rem;
+      gap: 0.8rem;
       flex-wrap: wrap;
       margin-top: 1rem;
     }
+
     .btn-primary {
-      background: #1e293b;
+      background: #e0e0e0;
       border: none;
-      color: white;
-      padding: 0.6rem 1.5rem;
+      color: #333333;
+      padding: 0.7rem 1.6rem;
       border-radius: 2rem;
-      font-weight: 500;
+      font-weight: 700;
       cursor: pointer;
       font-size: 0.9rem;
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      transition: 0.2s;
+      gap: 0.4rem;
+      transition: all 0.2s;
+      box-shadow: 6px 6px 14px #bebebe, -4px -4px 10px #ffffff;
+      font-family: inherit;
     }
     .btn-primary:hover {
-      background: #111827;
+      box-shadow: 8px 8px 18px #bebebe, -6px -6px 12px #ffffff;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active {
+      box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+      transform: scale(0.96);
+      background: #e0e0e0;
     }
     .btn-primary:disabled {
-      background: #94a3b8;
+      background: #e0e0e0;
+      color: #999;
       cursor: not-allowed;
+      box-shadow: inset 2px 2px 4px #bebebe, inset -2px -2px 4px #ffffff;
     }
+
     .btn-danger {
-      background: #dc2626;
+      background: #e0e0e0;
+      color: #c0392b;
     }
     .btn-danger:hover {
-      background: #b91c1c;
+      box-shadow: 8px 8px 18px #bebebe, -6px -6px 12px #ffffff;
     }
+    .btn-danger:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.96);
+      background: #e0e0e0;
+    }
+
     .btn-secondary {
-      background: white;
-      border: 1px solid #d1d5db;
-      color: #1f2937;
-      padding: 0.6rem 1.2rem;
+      background: var(--bg);
+      border: none;
+      color: var(--text-primary);
+      padding: 0.7rem 1.4rem;
       border-radius: 2rem;
-      font-weight: 500;
+      font-weight: 700;
       cursor: pointer;
       font-size: 0.85rem;
+      box-shadow: var(--shadow-convex);
+      transition: all 0.2s;
+      font-family: inherit;
     }
+    .btn-secondary:hover {
+      box-shadow: 8px 8px 16px #bebebe, -6px -6px 12px #ffffff;
+    }
+    .btn-secondary:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.96);
+    }
+
     .password-section {
       margin-top: 0.8rem;
       display: flex;
-      gap: 0.5rem;
+      gap: 0.6rem;
       align-items: center;
       flex-wrap: wrap;
       background: #fef3c7;
-      padding: 0.7rem 1rem;
-      border-radius: 1rem;
-      border: 1px solid #fbbf24;
+      padding: 0.8rem 1rem;
+      border-radius: 1.2rem;
+      box-shadow: var(--shadow-inner-sm);
     }
+
     .password-input {
-      padding: 0.5rem 0.8rem;
+      padding: 0.5rem 0.9rem;
       border-radius: 2rem;
-      border: 1px solid #d1d5db;
+      border: none;
       flex: 1;
       min-width: 120px;
+      background: #fff;
+      box-shadow: var(--shadow-inner-sm);
+      font-weight: 600;
+      font-family: inherit;
     }
+
     .toggle-pwd {
-      background: none;
+      background: var(--bg);
       border: none;
       cursor: pointer;
-      font-size: 0.85rem;
-      color: #3b82f6;
+      font-size: 0.9rem;
+      color: #555;
+      font-weight: 700;
+      padding: 0.4rem 0.8rem;
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow-outer-sm);
     }
+    .toggle-pwd:active {
+      box-shadow: var(--shadow-pressed);
+      transform: scale(0.93);
+    }
+
     .info-box {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 1rem;
-      padding: 0.7rem 1rem;
+      background: #ecf0f1;
+      border: none;
+      border-radius: 1.2rem;
+      padding: 0.8rem 1rem;
       margin-top: 0.8rem;
-      font-size: 0.8rem;
-      color: #1e40af;
+      font-size: 0.85rem;
+      color: #2c3e50;
       line-height: 1.5;
+      box-shadow: var(--shadow-inner-sm);
+      font-weight: 600;
     }
+
     .highlight-box {
       background: #fefce8;
-      border: 2px solid #facc15;
-      border-radius: 1rem;
-      padding: 0.8rem;
+      border: none;
+      border-radius: 1.2rem;
+      padding: 0.9rem;
       margin-top: 0.8rem;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       display: flex;
       gap: 0.6rem;
       align-items: flex-start;
+      box-shadow: var(--shadow-convex);
+      font-weight: 600;
+      color: #5d4e37;
     }
+
     .progress-bar-wrap {
       width: 100%;
-      height: 8px;
-      background: #e5e7eb;
-      border-radius: 4px;
+      height: 10px;
+      background: var(--bg);
+      border-radius: 5px;
       margin-top: 0.8rem;
       overflow: hidden;
+      box-shadow: var(--shadow-inner-sm);
     }
     .progress-bar-fill {
       height: 100%;
-      background: #3b82f6;
-      border-radius: 4px;
+      background: #666;
+      border-radius: 5px;
       transition: width 0.3s;
       width: 0%;
+      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
+
     .status {
       margin-top: 0.8rem;
       font-size: 0.85rem;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.2rem;
       border-radius: 2rem;
       display: inline-block;
+      font-weight: 700;
+      box-shadow: var(--shadow-outer-sm);
     }
     .status-info {
-      color: #2563eb;
-      background: #eef4ff;
+      color: #2c3e50;
+      background: #ecf0f1;
     }
     .status-warn {
-      color: #b45309;
-      background: #fffbeb;
+      color: #7d6608;
+      background: #fef3c7;
     }
     .status-success {
-      color: #059669;
-      background: #ecfdf5;
+      color: #0b5345;
+      background: #d1fae5;
     }
     .status-error {
-      color: #dc2626;
-      background: #fef2f2;
+      color: #922b21;
+      background: #fee2e2;
     }
+
     .same-pwd-row {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       margin-top: 0.6rem;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
     }
-    .same-pwd-row input[type="checkbox"] {
-      accent-color: #3b82f6;
-    }
+
     .quality-selector {
       display: flex;
       align-items: center;
       gap: 0.8rem;
       margin-top: 0.8rem;
       flex-wrap: wrap;
-      background: #f8fafc;
-      padding: 0.6rem 1rem;
-      border-radius: 1rem;
-      font-size: 0.8rem;
-    }
-    .quality-selector label {
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    .quality-selector select {
-      padding: 0.4rem 0.8rem;
-      border-radius: 2rem;
-      border: 1px solid #d1d5db;
-      font-size: 0.8rem;
-    }
-    select {
-      padding: 0.5rem;
-      border-radius: 2rem;
-      border: 1px solid #ccc;
+      background: var(--bg);
+      padding: 0.7rem 1rem;
+      border-radius: 1.2rem;
       font-size: 0.85rem;
+      box-shadow: var(--shadow-inner);
+      font-weight: 600;
+      color: var(--text-primary);
     }
+
     .output-format-row {
       display: flex;
       gap: 0.8rem;
       align-items: center;
       flex-wrap: wrap;
       margin-top: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
     }
     .output-format-row label {
-      font-weight: 500;
+      font-weight: 700;
       font-size: 0.85rem;
     }
+
     .watermark-settings {
       margin-top: 0.8rem;
       display: flex;
@@ -505,50 +625,121 @@
       flex-wrap: wrap;
     }
     .watermark-row label {
-      font-weight: 500;
-      font-size: 0.8rem;
+      font-weight: 700;
+      font-size: 0.85rem;
       white-space: nowrap;
       min-width: 60px;
+      color: var(--text-primary);
     }
-    .watermark-row input[type="text"] {
-      flex: 1;
-      min-width: 150px;
-      padding: 0.5rem 0.8rem;
-      border-radius: 2rem;
-      border: 1px solid #d1d5db;
-      font-size: 0.85rem;
-    }
+    .watermark-row input[type="text"],
     .watermark-row input[type="range"] {
       flex: 1;
-      min-width: 80px;
-    }
-    .watermark-row select {
-      flex: 1;
       min-width: 100px;
-      padding: 0.5rem;
+    }
+
+    /* ======== 自定义下拉 ======== */
+    .custom-select-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .custom-select-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem 0.8rem;
       border-radius: 2rem;
-      border: 1px solid #d1d5db;
+      background: #e0e0e0;
+      box-shadow: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      font-size: 0.85rem;
+      min-width: 100px;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .custom-select-display:hover {
+      box-shadow: 6px 6px 12px #bebebe, -6px -6px 12px #ffffff;
+    }
+    .custom-select-display.open {
+      box-shadow: inset 3px 3px 6px #bebebe, inset -3px -3px 6px #ffffff !important;
+    }
+    .custom-select-display .arrow {
+      font-size: 0.7rem;
+      color: #999;
+      transition: transform 0.2s;
+    }
+    .custom-select-display.open .arrow {
+      transform: rotate(180deg);
+    }
+    .custom-select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #e8e8e8;
+      border-radius: 1rem;
+      box-shadow: 8px 8px 16px #bebebe, -4px -4px 8px #ffffff;
+      z-index: 100;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .custom-select-dropdown.open {
+      display: block;
+    }
+    .custom-select-option {
+      padding: 0.65rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.85rem;
+      margin: 3px 8px;
+      border-radius: 0.8rem;
+      transition: all 0.15s;
+    }
+    .custom-select-option:hover {
+      box-shadow: inset 2px 2px 5px #d0d0d0, inset -2px -2px 5px #f0f0f0;
+      background: #e8e8e8;
+    }
+    .custom-select-option.selected {
+      background: #e0e0e0 !important;
+      color: #333 !important;
+      box-shadow: inset 3px 3px 6px #bebebe, inset -3px -3px 6px #ffffff !important;
+      font-weight: 700;
+      position: relative;
+    }
+    .custom-select-option.selected::after {
+      content: '✓';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
       font-size: 0.8rem;
+      color: #666;
+      font-weight: 700;
     }
-    .watermark-row .range-value {
-      font-size: 0.75rem;
-      color: #64748b;
-      min-width: 30px;
-      text-align: center;
+
+    select.native-select {
+      display: none !important;
     }
+
     @media (max-width: 600px) {
       .container {
         padding: 1.2rem 0.8rem;
+        border-radius: 2rem;
       }
       .tools-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 0.4rem;
+        gap: 0.5rem;
       }
       .tool-btn {
-        padding: 0.6rem 0.3rem;
+        padding: 0.7rem 0.3rem;
+        border-radius: 1.2rem;
       }
       .tool-btn .tool-icon {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
       }
       .tool-btn .tool-label {
         font-size: 0.65rem;
@@ -587,250 +778,100 @@
 
   <script>
     (function() {
-      // PDF.js worker配置
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-      // 多语言支持
       const LANGUAGES = {
         'zh-CN': {
-          menuTitle: '📄 PDF工具箱',
-          subtitle: '多功能PDF处理工具',
-          merge: '合并PDF',
-          split: '拆分PDF',
-          removePassword: '删除密码',
-          compress: '压缩PDF',
-          watermark: '添加水印',
-          extractPages: '提取页面',
-          pdfToImages: 'PDF转图片',
-          imagesToPdf: '图片转PDF',
-          installApp: '📱 安装应用',
-          downloadApk: '📦 下载APK',
-          language: '🌐 语言 / Language',
-          installedApp: '✅ 已安装应用',
-          addToHome: '📱 添加到主屏幕',
-          selectFile: '选择一个PDF文件',
-          selectFiles: '选择要合并的PDF文件（可多选）',
-          supportMulti: '支持多选，可拖拽排序',
-          supportSingle: '选择一个文件',
-          samePassword: '所有加密PDF使用相同密码',
-          passwordLabel: '🔑 统一密码：',
-          passwordSingle: '🔑 密码：',
-          passwordPlaceholder: '输入密码',
-          show: '👁️',
-          hide: '🙈',
-          startMerge: '🔗 开始合并',
-          clearList: '清空列表',
-          splitMode: '拆分方式：',
-          byPage: '按页拆分',
-          byRange: '自定义范围',
-          rangePlaceholder: '如: 1-3,5',
-          startSplit: '✂️ 执行拆分',
-          removePwdInfo: '导出无密码保护的PDF，内容完整保留。',
-          startRemovePwd: '🔓 删除密码并导出',
-          compressLabel: '📦 压缩PDF',
-          clarity: '🔍 清晰度：',
-          sd: '标清',
-          hd: '高清',
-          uhd: '超清',
-          quality: '📦 质量：',
-          maxCompress: '最大压缩',
-          saveSpace: '节省空间',
-          balanced: '平衡',
-          highQuality: '高质量',
-          startCompress: '📦 压缩PDF',
-          watermarkLabel: '💧 添加水印',
-          watermarkText: '水印文字：',
-          watermarkTextPlaceholder: '输入水印文字',
-          watermarkPosition: '位置：',
-          positionCenter: '中间',
-          positionTop: '上方',
-          positionBottom: '下方',
-          positionFull: '全屏铺满',
-          watermarkAngle: '角度：',
-          watermarkOpacity: '透明度：',
-          watermarkSize: '大小：',
+          menuTitle: '📄 PDF工具箱', subtitle: '多功能PDF处理工具',
+          merge: '合并PDF', split: '拆分PDF', removePassword: '删除密码', compress: '压缩PDF',
+          watermark: '添加水印', extractPages: '提取页面', pdfToImages: 'PDF转图片', imagesToPdf: '图片转PDF',
+          installApp: '📱 安装应用', downloadApk: '📦 下载APK', language: '🌐 语言 / Language',
+          installedApp: '✅ 已安装应用', addToHome: '📱 添加到主屏幕',
+          selectFile: '选择一个PDF文件', selectFiles: '选择要合并的PDF文件（可多选）',
+          supportMulti: '支持多选，可拖拽排序', supportSingle: '选择一个文件',
+          samePassword: '所有加密PDF使用相同密码', passwordLabel: '🔑 统一密码：', passwordSingle: '🔑 密码：',
+          passwordPlaceholder: '输入密码', show: '👁️', hide: '🙈',
+          startMerge: '🔗 开始合并', clearList: '清空列表',
+          splitMode: '拆分方式：', byPage: '按页拆分', byRange: '自定义范围', rangePlaceholder: '如: 1-3,5', startSplit: '✂️ 执行拆分',
+          removePwdInfo: '导出无密码保护的PDF，内容完整保留。', startRemovePwd: '🔓 删除密码并导出',
+          compressLabel: '📦 压缩PDF', clarity: '🔍 清晰度：', sd: '标清', hd: '高清', uhd: '超清',
+          quality: '📦 质量：', maxCompress: '最大压缩', saveSpace: '节省空间', balanced: '平衡', highQuality: '高质量',
+          startCompress: '📦 压缩PDF', watermarkLabel: '💧 添加水印',
+          watermarkText: '水印文字：', watermarkTextPlaceholder: '输入水印文字',
+          watermarkPosition: '位置：', positionCenter: '中间', positionTop: '上方', positionBottom: '下方', positionFull: '全屏铺满',
+          watermarkAngle: '角度：', watermarkOpacity: '透明度：', watermarkSize: '大小：',
           startWatermark: '💧 添加水印并下载',
           watermarkInfo: '在PDF每一页添加文字水印，支持自定义位置、角度、透明度和大小。',
-          extractPagesLabel: '📑 提取页面',
-          extractRange: '提取范围：',
-          rangeInfo: '输入要提取的页码范围，如 1-3,5 表示提取第1到3页和第5页。',
-          startExtractPages: '📑 提取页面',
-          pdfToImagesLabel: '🔄 PDF转图片',
-          outputFormat: '输出格式：',
-          zipDownload: '打包下载：',
-          startConvert: '🔄 转为图片',
-          imagesToPdfLabel: '📸 图片转PDF',
-          pageSize: '页面尺寸：',
-          auto: '自动',
-          fitMode: '缩放：',
-          fit: '适应',
-          fill: '填充',
-          original: '原始',
-          imgInfo: '支持 JPG、PNG、WebP、BMP 格式。可拖拽排序，按顺序合成PDF。',
-          startCompose: '📸 合成为PDF',
-          needPassword: '需要密码',
-          wrongPassword: '密码错误',
-          mergeSuccess: '合并完成',
-          splitSuccess: '拆分完成',
-          watermarkSuccess: '水印添加完成',
-          compressSuccess: '压缩完成',
-          convertSuccess: '转换完成',
-          composeSuccess: '合成完成',
-          extractSuccess: '提取完成',
-          noFile: '请先选择文件',
-          processing: '正在处理...',
-          generating: '生成PDF...',
-          pleaseEnterRange: '请输入页码范围',
-          invalidRange: '没有有效的页码范围',
-          installTitle: '📲 安装应用',
-          chromeSteps: '📌 安装步骤：',
-          step1chrome: '点击浏览器右上角菜单 ⋮',
-          step2chrome: '选择「添加到主屏幕」或「安装应用」',
-          iosSteps: '📌 iOS 安装步骤：',
-          step1ios: '点击 Safari 底部的分享按钮',
-          step2ios: '滑动找到「添加到主屏幕」',
-          browserNotSupport: '当前浏览器可能不支持 PWA 安装',
-          suggestBrowser: '建议使用 Chrome、Edge 或 Safari 浏览器',
-          gotIt: '知道了',
-          close: '关闭',
-          usingInstalled: '您正在使用已安装的应用',
-          runningStandalone: '当前已在独立应用模式下运行',
-          currentLanguage: '当前语言',
-          selectLanguage: '选择语言 / Select Language',
-          simplifiedChinese: '简体中文',
-          english: 'English',
-          pages: '页',
-          selectPdfMerge: '选择要合并的PDF',
-          selectPdfSplit: '选择一个PDF用于拆分',
-          selectPdfRemovePwd: '选择要删除密码的PDF',
-          selectPdfCompress: '选择要压缩的PDF',
-          selectPdfWatermark: '选择一个PDF添加水印',
-          selectPdfExtractPages: '选择一个PDF提取页面',
-          selectPdfToImages: '选择一个PDF转为图片',
-          selectImagesToPdf: '选择图片合成PDF',
-          atLeast2: '至少需要2个PDF',
-          invalidFile: '请选择PDF文件',
-          fileTooLarge: '文件过大，最大支持100MB'
+          extractPagesLabel: '📑 提取页面', extractRange: '提取范围：',
+          rangeInfo: '输入要提取的页码范围，如 1-3,5 表示提取第1到3页和第5页。', startExtractPages: '📑 提取页面',
+          pdfToImagesLabel: '🔄 PDF转图片', outputFormat: '输出格式：', zipDownload: '打包下载：', startConvert: '🔄 转为图片',
+          imagesToPdfLabel: '📸 图片转PDF', pageSize: '页面尺寸：', auto: '自动', fitMode: '缩放：',
+          fit: '适应', fill: '填充', original: '原始',
+          imgInfo: '支持 JPG、PNG、WebP、BMP 格式。可拖拽排序，按顺序合成PDF。', startCompose: '📸 合成为PDF',
+          needPassword: '需要密码', wrongPassword: '密码错误',
+          mergeSuccess: '合并完成', splitSuccess: '拆分完成', watermarkSuccess: '水印添加完成',
+          compressSuccess: '压缩完成', convertSuccess: '转换完成', composeSuccess: '合成完成', extractSuccess: '提取完成',
+          noFile: '请先选择文件', processing: '正在处理...', generating: '生成PDF...',
+          pleaseEnterRange: '请输入页码范围', invalidRange: '没有有效的页码范围',
+          installTitle: '📲 安装应用', chromeSteps: '📌 安装步骤：',
+          step1chrome: '点击浏览器右上角菜单 ⋮', step2chrome: '选择「添加到主屏幕」或「安装应用」',
+          iosSteps: '📌 iOS 安装步骤：', step1ios: '点击 Safari 底部的分享按钮', step2ios: '滑动找到「添加到主屏幕」',
+          browserNotSupport: '当前浏览器可能不支持 PWA 安装', suggestBrowser: '建议使用 Chrome、Edge 或 Safari 浏览器',
+          gotIt: '知道了', close: '关闭', usingInstalled: '您正在使用已安装的应用', runningStandalone: '当前已在独立应用模式下运行',
+          currentLanguage: '当前语言', selectLanguage: '选择语言 / Select Language',
+          simplifiedChinese: '简体中文', english: 'English', pages: '页',
+          selectPdfMerge: '选择要合并的PDF', selectPdfSplit: '选择一个PDF用于拆分',
+          selectPdfRemovePwd: '选择要删除密码的PDF', selectPdfCompress: '选择要压缩的PDF',
+          selectPdfWatermark: '选择一个PDF添加水印', selectPdfExtractPages: '选择一个PDF提取页面',
+          selectPdfToImages: '选择一个PDF转为图片', selectImagesToPdf: '选择图片合成PDF',
+          atLeast2: '至少需要2个PDF', invalidFile: '请选择PDF文件', fileTooLarge: '文件过大，最大支持100MB',
+          browseFiles: '浏览文件'
         },
         'en-US': {
-          menuTitle: '📄 PDF Toolkit',
-          subtitle: 'Multi-function PDF Tool',
-          merge: 'Merge PDF',
-          split: 'Split PDF',
-          removePassword: 'Remove Password',
-          compress: 'Compress PDF',
-          watermark: 'Add Watermark',
-          extractPages: 'Extract Pages',
-          pdfToImages: 'PDF to Images',
-          imagesToPdf: 'Images to PDF',
-          installApp: '📱 Install App',
-          downloadApk: '📦 Download APK',
-          language: '🌐 Language',
-          installedApp: '✅ Installed',
-          addToHome: '📱 Add to Home',
-          selectFile: 'Select a PDF file',
-          selectFiles: 'Select PDFs to merge (multiple)',
-          supportMulti: 'Multi-select, drag to reorder',
-          supportSingle: 'Select a file',
-          samePassword: 'All encrypted PDFs use same password',
-          passwordLabel: '🔑 Password: ',
-          passwordSingle: '🔑 Password: ',
-          passwordPlaceholder: 'Enter password',
-          show: '👁️',
-          hide: '🙈',
-          startMerge: '🔗 Start Merge',
-          clearList: 'Clear List',
-          splitMode: 'Split Mode: ',
-          byPage: 'By Page',
-          byRange: 'Custom Range',
-          rangePlaceholder: 'e.g. 1-3,5',
-          startSplit: '✂️ Split',
-          removePwdInfo: 'Export password-free PDF, content preserved.',
-          startRemovePwd: '🔓 Remove Password & Export',
-          compressLabel: '📦 Compress PDF',
-          clarity: '🔍 Clarity: ',
-          sd: 'SD',
-          hd: 'HD',
-          uhd: 'UHD',
-          quality: '📦 Quality: ',
-          maxCompress: 'Max',
-          saveSpace: 'Space Save',
-          balanced: 'Balanced',
-          highQuality: 'High',
-          startCompress: '📦 Compress PDF',
-          watermarkLabel: '💧 Add Watermark',
-          watermarkText: 'Text: ',
-          watermarkTextPlaceholder: 'Enter watermark text',
-          watermarkPosition: 'Position: ',
-          positionCenter: 'Center',
-          positionTop: 'Top',
-          positionBottom: 'Bottom',
-          positionFull: 'Full Page',
-          watermarkAngle: 'Angle: ',
-          watermarkOpacity: 'Opacity: ',
-          watermarkSize: 'Size: ',
+          menuTitle: '📄 PDF Toolkit', subtitle: 'Multi-function PDF Tool',
+          merge: 'Merge PDF', split: 'Split PDF', removePassword: 'Remove Password', compress: 'Compress PDF',
+          watermark: 'Add Watermark', extractPages: 'Extract Pages', pdfToImages: 'PDF to Images', imagesToPdf: 'Images to PDF',
+          installApp: '📱 Install App', downloadApk: '📦 Download APK', language: '🌐 Language',
+          installedApp: '✅ Installed', addToHome: '📱 Add to Home',
+          selectFile: 'Select a PDF file', selectFiles: 'Select PDFs to merge (multiple)',
+          supportMulti: 'Multi-select, drag to reorder', supportSingle: 'Select a file',
+          samePassword: 'All encrypted PDFs use same password', passwordLabel: '🔑 Password: ', passwordSingle: '🔑 Password: ',
+          passwordPlaceholder: 'Enter password', show: '👁️', hide: '🙈',
+          startMerge: '🔗 Start Merge', clearList: 'Clear List',
+          splitMode: 'Split Mode: ', byPage: 'By Page', byRange: 'Custom Range', rangePlaceholder: 'e.g. 1-3,5', startSplit: '✂️ Split',
+          removePwdInfo: 'Export password-free PDF, content preserved.', startRemovePwd: '🔓 Remove Password & Export',
+          compressLabel: '📦 Compress PDF', clarity: '🔍 Clarity: ', sd: 'SD', hd: 'HD', uhd: 'UHD',
+          quality: '📦 Quality: ', maxCompress: 'Max', saveSpace: 'Space Save', balanced: 'Balanced', highQuality: 'High',
+          startCompress: '📦 Compress PDF', watermarkLabel: '💧 Add Watermark',
+          watermarkText: 'Text: ', watermarkTextPlaceholder: 'Enter watermark text',
+          watermarkPosition: 'Position: ', positionCenter: 'Center', positionTop: 'Top', positionBottom: 'Bottom', positionFull: 'Full Page',
+          watermarkAngle: 'Angle: ', watermarkOpacity: 'Opacity: ', watermarkSize: 'Size: ',
           startWatermark: '💧 Add Watermark & Download',
           watermarkInfo: 'Add text watermark to every page with custom position, angle, opacity and size.',
-          extractPagesLabel: '📑 Extract Pages',
-          extractRange: 'Page Range: ',
-          rangeInfo: 'Enter page range, e.g. 1-3,5 extracts pages 1-3 and 5.',
-          startExtractPages: '📑 Extract Pages',
-          pdfToImagesLabel: '🔄 PDF to Images',
-          outputFormat: 'Format: ',
-          zipDownload: 'Zip: ',
-          startConvert: '🔄 Convert',
-          imagesToPdfLabel: '📸 Images to PDF',
-          pageSize: 'Page Size: ',
-          auto: 'Auto',
-          fitMode: 'Fit: ',
-          fit: 'Fit',
-          fill: 'Fill',
-          original: 'Original',
-          imgInfo: 'Supports JPG, PNG, WebP, BMP. Drag to reorder.',
-          startCompose: '📸 Compose PDF',
-          needPassword: 'Need Password',
-          wrongPassword: 'Wrong Password',
-          mergeSuccess: 'Merge Complete',
-          splitSuccess: 'Split Complete',
-          watermarkSuccess: 'Watermark Added',
-          compressSuccess: 'Compress Complete',
-          convertSuccess: 'Convert Complete',
-          composeSuccess: 'Compose Complete',
-          extractSuccess: 'Extract Complete',
-          noFile: 'Please select files',
-          processing: 'Processing...',
-          generating: 'Generating PDF...',
-          pleaseEnterRange: 'Please enter page range',
-          invalidRange: 'Invalid page range',
-          installTitle: '📲 Install App',
-          chromeSteps: '📌 Steps: ',
-          step1chrome: 'Click browser menu ⋮',
-          step2chrome: 'Select "Add to Home Screen"',
-          iosSteps: '📌 iOS Steps: ',
-          step1ios: 'Tap Safari share button',
-          step2ios: 'Find "Add to Home Screen"',
-          browserNotSupport: 'Browser may not support PWA',
-          suggestBrowser: 'Use Chrome, Edge, or Safari',
-          gotIt: 'Got it',
-          close: 'Close',
-          usingInstalled: 'You are using the installed app',
-          runningStandalone: 'Running in standalone mode',
-          currentLanguage: 'Current Language',
-          selectLanguage: 'Select Language',
-          simplifiedChinese: 'Simplified Chinese',
-          english: 'English',
-          pages: 'pages',
-          selectPdfMerge: 'Select PDFs to merge',
-          selectPdfSplit: 'Select a PDF to split',
-          selectPdfRemovePwd: 'Select PDFs to remove password',
-          selectPdfCompress: 'Select a PDF to compress',
-          selectPdfWatermark: 'Select a PDF to add watermark',
-          selectPdfExtractPages: 'Select a PDF to extract pages',
-          selectPdfToImages: 'Select a PDF to convert',
-          selectImagesToPdf: 'Select images to compose',
-          atLeast2: 'At least 2 PDFs required',
-          invalidFile: 'Please select PDF files',
-          fileTooLarge: 'File too large, max 100MB'
+          extractPagesLabel: '📑 Extract Pages', extractRange: 'Page Range: ',
+          rangeInfo: 'Enter page range, e.g. 1-3,5 extracts pages 1-3 and 5.', startExtractPages: '📑 Extract Pages',
+          pdfToImagesLabel: '🔄 PDF to Images', outputFormat: 'Format: ', zipDownload: 'Zip: ', startConvert: '🔄 Convert',
+          imagesToPdfLabel: '📸 Images to PDF', pageSize: 'Page Size: ', auto: 'Auto', fitMode: 'Fit: ',
+          fit: 'Fit', fill: 'Fill', original: 'Original',
+          imgInfo: 'Supports JPG, PNG, WebP, BMP. Drag to reorder.', startCompose: '📸 Compose PDF',
+          needPassword: 'Need Password', wrongPassword: 'Wrong Password',
+          mergeSuccess: 'Merge Complete', splitSuccess: 'Split Complete', watermarkSuccess: 'Watermark Added',
+          compressSuccess: 'Compress Complete', convertSuccess: 'Convert Complete', composeSuccess: 'Compose Complete', extractSuccess: 'Extract Complete',
+          noFile: 'Please select files', processing: 'Processing...', generating: 'Generating PDF...',
+          pleaseEnterRange: 'Please enter page range', invalidRange: 'Invalid page range',
+          installTitle: '📲 Install App', chromeSteps: '📌 Steps: ',
+          step1chrome: 'Click browser menu ⋮', step2chrome: 'Select "Add to Home Screen"',
+          iosSteps: '📌 iOS Steps: ', step1ios: 'Tap Safari share button', step2ios: 'Find "Add to Home Screen"',
+          browserNotSupport: 'Browser may not support PWA', suggestBrowser: 'Use Chrome, Edge, or Safari',
+          gotIt: 'Got it', close: 'Close', usingInstalled: 'You are using the installed app', runningStandalone: 'Running in standalone mode',
+          currentLanguage: 'Current Language', selectLanguage: 'Select Language',
+          simplifiedChinese: 'Simplified Chinese', english: 'English', pages: 'pages',
+          selectPdfMerge: 'Select PDFs to merge', selectPdfSplit: 'Select a PDF to split',
+          selectPdfRemovePwd: 'Select PDFs to remove password', selectPdfCompress: 'Select a PDF to compress',
+          selectPdfWatermark: 'Select a PDF to add watermark', selectPdfExtractPages: 'Select a PDF to extract pages',
+          selectPdfToImages: 'Select a PDF to convert', selectImagesToPdf: 'Select images to compose',
+          atLeast2: 'At least 2 PDFs required', invalidFile: 'Please select PDF files', fileTooLarge: 'File too large, max 100MB',
+          browseFiles: 'Browse Files'
         }
       };
 
@@ -841,22 +882,15 @@
       }
 
       let currentLang = detectBrowserLanguage();
-      try {
-        const saved = localStorage.getItem('pdf-tool-lang');
-        if (saved && LANGUAGES[saved]) currentLang = saved;
-      } catch (e) {}
+      try { const saved = localStorage.getItem('pdf-tool-lang'); if (saved && LANGUAGES[saved]) currentLang = saved; } catch (e) {}
 
-      function t(key) {
-        return LANGUAGES[currentLang]?.[key] || LANGUAGES['zh-CN'][key] || key;
-      }
+      function t(key) { return LANGUAGES[currentLang]?.[key] || LANGUAGES['zh-CN'][key] || key; }
 
       function updateAllTexts() {
         document.querySelector('h1').textContent = t('menuTitle');
         document.querySelector('.subtitle').textContent = t('subtitle');
         const labels = ['removePassword', 'split', 'merge', 'compress', 'watermark', 'extractPages', 'pdfToImages', 'imagesToPdf'];
-        document.querySelectorAll('.tool-btn .tool-label').forEach((el, i) => {
-          if (i < labels.length) el.textContent = t(labels[i]);
-        });
+        document.querySelectorAll('.tool-btn .tool-label').forEach((el, i) => { if (i < labels.length) el.textContent = t(labels[i]); });
         updateMenuLanguage();
         renderToolUI();
       }
@@ -868,9 +902,7 @@
         if (lb) lb.textContent = t('language');
       }
 
-      function isRunningAsPWA() {
-        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      }
+      function isRunningAsPWA() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
 
       function detectBrowser() {
         const ua = navigator.userAgent;
@@ -883,8 +915,8 @@
 
       function showModal(title, html) {
         const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
-        overlay.innerHTML = `<div style="background:white;border-radius:20px;padding:24px;max-width:380px;width:90%;"><h3 style="margin-bottom:12px;">${title}</h3>${html}<button id="modalCloseBtn" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:20px;background:#1e293b;color:white;cursor:pointer;font-size:0.9rem;">${t('gotIt')}</button></div>`;
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:10000;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = `<div style="background:#e0e0e0;border-radius:24px;padding:24px;max-width:380px;width:90%;box-shadow:20px 20px 40px #bebebe,-20px -20px 40px #ffffff;"><h3 style="margin-bottom:12px;color:#333;">${title}</h3>${html}<button id="modalCloseBtn" style="margin-top:12px;width:100%;padding:12px;border:none;border-radius:20px;background:#e0e0e0;color:#333;cursor:pointer;font-size:0.9rem;font-weight:700;box-shadow:4px 4px 8px #bebebe,-4px -4px 8px #ffffff;">${t('gotIt')}</button></div>`;
         document.body.appendChild(overlay);
         overlay.querySelector('#modalCloseBtn').onclick = () => overlay.remove();
         overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
@@ -892,15 +924,15 @@
 
       function installPWA() {
         if (isRunningAsPWA()) {
-          showModal(t('installTitle'), `<div style="text-align:center;padding:12px;"><div style="font-size:40px;">📱</div><p>${t('usingInstalled')}</p><p style="font-size:0.8rem;color:#64748b;">${t('runningStandalone')}</p></div>`);
+          showModal(t('installTitle'), `<div style="text-align:center;padding:12px;"><div style="font-size:40px;">📱</div><p style="color:#333;font-weight:600;">${t('usingInstalled')}</p><p style="font-size:0.8rem;color:#666;">${t('runningStandalone')}</p></div>`);
           return;
         }
         if (!window._deferredPrompt) {
           const b = detectBrowser();
           let h = '';
-          if (b === 'chrome' || b === 'edge') h = `<p style="font-weight:500;">${t('chromeSteps')}</p><p>1. ${t('step1chrome')}</p><p>2. ${t('step2chrome')}</p>`;
-          else if (b === 'ios' || b === 'safari') h = `<p style="font-weight:500;">${t('iosSteps')}</p><p>1. ${t('step1ios')}</p><p>2. ${t('step2ios')}</p>`;
-          else h = `<p>${t('browserNotSupport')}</p><p style="font-size:0.8rem;">${t('suggestBrowser')}</p>`;
+          if (b === 'chrome' || b === 'edge') h = `<p style="font-weight:600;color:#333;">${t('chromeSteps')}</p><p style="color:#555;">1. ${t('step1chrome')}</p><p style="color:#555;">2. ${t('step2chrome')}</p>`;
+          else if (b === 'ios' || b === 'safari') h = `<p style="font-weight:600;color:#333;">${t('iosSteps')}</p><p style="color:#555;">1. ${t('step1ios')}</p><p style="color:#555;">2. ${t('step2ios')}</p>`;
+          else h = `<p style="color:#333;">${t('browserNotSupport')}</p><p style="font-size:0.8rem;color:#666;">${t('suggestBrowser')}</p>`;
           showModal(t('installTitle'), h);
           return;
         }
@@ -910,10 +942,10 @@
       }
 
       function showLanguageSelector() {
-        const html = `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,0.04);border-radius:12px;text-align:center;"><div style="font-size:0.8rem;color:#64748b;">${t('currentLanguage')}</div><div style="font-size:1.2rem;font-weight:600;">${currentLang==='zh-CN'?'简体中文':'English'}</div></div><div style="display:flex;flex-direction:column;gap:8px;"><div class="lopt" data-l="zh-CN" style="padding:14px;border-radius:12px;cursor:pointer;border:2px solid ${currentLang==='zh-CN'?'#1e293b':'transparent'};background:${currentLang==='zh-CN'?'rgba(30,41,59,0.05)':'rgba(0,0,0,0.02)'};">🇨🇳 ${t('simplifiedChinese')} ${currentLang==='zh-CN'?'✓':''}</div><div class="lopt" data-l="en-US" style="padding:14px;border-radius:12px;cursor:pointer;border:2px solid ${currentLang==='en-US'?'#1e293b':'transparent'};background:${currentLang==='en-US'?'rgba(30,41,59,0.05)':'rgba(0,0,0,0.02)'};">🇺🇸 ${t('english')} ${currentLang==='en-US'?'✓':''}</div></div>`;
+        const html = `<div style="margin-bottom:12px;padding:10px;border-radius:14px;text-align:center;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;"><div style="font-size:0.8rem;color:#666;">${t('currentLanguage')}</div><div style="font-size:1.2rem;font-weight:700;color:#333;">${currentLang==='zh-CN'?'简体中文':'English'}</div></div><div style="display:flex;flex-direction:column;gap:8px;"><div class="lopt" data-l="zh-CN" style="padding:14px;border-radius:14px;cursor:pointer;font-weight:600;color:#333;box-shadow:${currentLang==='zh-CN'?'inset 4px 4px 8px #bebebe,inset -4px -4px 8px #ffffff':'4px 4px 8px #bebebe,-4px -4px 8px #ffffff'};transition:0.2s;">🇨🇳 ${t('simplifiedChinese')} ${currentLang==='zh-CN'?'✓':''}</div><div class="lopt" data-l="en-US" style="padding:14px;border-radius:14px;cursor:pointer;font-weight:600;color:#333;box-shadow:${currentLang==='en-US'?'inset 4px 4px 8px #bebebe,inset -4px -4px 8px #ffffff':'4px 4px 8px #bebebe,-4px -4px 8px #ffffff'};transition:0.2s;">🇺🇸 ${t('english')} ${currentLang==='en-US'?'✓':''}</div></div>`;
         const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
-        overlay.innerHTML = `<div style="background:white;border-radius:20px;padding:24px;max-width:380px;width:90%;"><h3 style="margin-bottom:12px;">${t('selectLanguage')}</h3>${html}<button id="lclose" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:20px;background:#f1f5f9;cursor:pointer;">${t('close')}</button></div>`;
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:10000;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = `<div style="background:#e0e0e0;border-radius:24px;padding:24px;max-width:380px;width:90%;box-shadow:20px 20px 40px #bebebe,-20px -20px 40px #ffffff;"><h3 style="margin-bottom:12px;color:#333;">${t('selectLanguage')}</h3>${html}<button id="lclose" style="margin-top:12px;width:100%;padding:12px;border:none;border-radius:20px;background:#e0e0e0;color:#333;cursor:pointer;font-weight:700;box-shadow:4px 4px 8px #bebebe,-4px -4px 8px #ffffff;">${t('close')}</button></div>`;
         document.body.appendChild(overlay);
         overlay.querySelectorAll('.lopt').forEach(o => o.onclick = () => {
           const nl = o.dataset.l;
@@ -928,11 +960,10 @@
         overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
       }
 
-      // 核心变量
       let currentTool = 'removePassword';
       let fileEntries = [];
       let isProcessing = false;
-      const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+      const MAX_FILE_SIZE = 100 * 1024 * 1024;
       const toolCard = document.getElementById('toolCard');
       const statusArea = document.getElementById('statusArea');
       const toolsGrid = document.getElementById('toolsGrid');
@@ -949,9 +980,7 @@
         renderToolUI();
       });
 
-      function clearStatus() {
-        statusArea.innerHTML = '';
-      }
+      function clearStatus() { statusArea.innerHTML = ''; }
 
       function setStatus(text, type = 'info') {
         const cls = type === 'warn' ? 'status-warn' : type === 'success' ? 'status-success' : type === 'error' ? 'status-error' : 'status-info';
@@ -959,31 +988,19 @@
       }
 
       function setProgress(pct, text = '') {
-        statusArea.innerHTML = `<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div><div style="text-align:center;font-size:0.75rem;color:#64748b;">${text || Math.round(pct) + '%'}</div>`;
+        statusArea.innerHTML = `<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div><div style="text-align:center;font-size:0.75rem;color:#666;font-weight:600;margin-top:4px;">${text || Math.round(pct) + '%'}</div>`;
       }
 
       function getRenderOptions() {
-        if (currentTool === 'compress') return {
-          scale: parseFloat(document.getElementById('renderScale')?.value || '1.0'),
-          quality: parseFloat(document.getElementById('jpegQuality')?.value || '0.6')
-        };
-        if (currentTool === 'pdfToImages') return {
-          scale: parseFloat(document.getElementById('renderScale')?.value || '2.0'),
-          quality: parseFloat(document.getElementById('jpegQuality')?.value || '0.92')
-        };
+        if (currentTool === 'compress') return { scale: parseFloat(document.getElementById('renderScale')?.value || '1.0'), quality: parseFloat(document.getElementById('jpegQuality')?.value || '0.6') };
+        if (currentTool === 'pdfToImages') return { scale: parseFloat(document.getElementById('renderScale')?.value || '2.0'), quality: parseFloat(document.getElementById('jpegQuality')?.value || '0.92') };
         return { scale: 2.0, quality: 0.92 };
       }
 
       function validateFile(file) {
         if (!file) return false;
-        if (file.size === 0) {
-          setStatus('文件为空', 'error');
-          return false;
-        }
-        if (file.size > MAX_FILE_SIZE) {
-          setStatus(t('fileTooLarge'), 'error');
-          return false;
-        }
+        if (file.size === 0) { setStatus('文件为空', 'error'); return false; }
+        if (file.size > MAX_FILE_SIZE) { setStatus(t('fileTooLarge'), 'error'); return false; }
         return true;
       }
 
@@ -1030,12 +1047,8 @@
       }
 
       async function checkEncrypted(file) {
-        try {
-          await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-          return false;
-        } catch (e) {
-          return !!(e.name === 'PasswordException' || (e.message && e.message.includes('password')));
-        }
+        try { await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise; return false; }
+        catch (e) { return !!(e.name === 'PasswordException' || (e.message && e.message.includes('password'))); }
       }
 
       async function processPdf(file, password = '') {
@@ -1047,37 +1060,24 @@
       function handleError(err, idx) {
         const entry = fileEntries[idx];
         if (!entry) return;
-        if (err.message === 'NEED_PASSWORD') {
-          entry.status = 'error';
-          setStatus(`⚠️ ${t('needPassword')}`, 'warn');
-        } else if (err.message === 'INCORRECT_PASSWORD') {
-          entry.status = 'error';
-          setStatus(`❌ ${t('wrongPassword')}`, 'warn');
-        } else {
-          setStatus(`❌ ${err.message}`, 'error');
-        }
+        if (err.message === 'NEED_PASSWORD') { entry.status = 'error'; setStatus(`⚠️ ${t('needPassword')}`, 'warn'); }
+        else if (err.message === 'INCORRECT_PASSWORD') { entry.status = 'error'; setStatus(`❌ ${t('wrongPassword')}`, 'warn'); }
+        else { setStatus(`❌ ${err.message}`, 'error'); }
         renderFileList();
       }
 
       function renderToolUI() {
         clearStatus();
-        if (isProcessing) {
-          setStatus(t('processing'), 'info');
-          return;
-        }
+        if (isProcessing) { setStatus(t('processing'), 'info'); return; }
         const builders = {
-          merge: buildMergeUI,
-          split: buildSplitUI,
-          removePassword: buildRemovePwdUI,
-          compress: buildCompressUI,
-          watermark: buildWatermarkUI,
-          extractPages: buildExtractPagesUI,
-          pdfToImages: buildPdfToImagesUI,
-          imagesToPdf: buildImagesToPdfUI
+          merge: buildMergeUI, split: buildSplitUI, removePassword: buildRemovePwdUI,
+          compress: buildCompressUI, watermark: buildWatermarkUI, extractPages: buildExtractPagesUI,
+          pdfToImages: buildPdfToImagesUI, imagesToPdf: buildImagesToPdfUI
         };
         toolCard.innerHTML = (builders[currentTool] || (() => ''))();
         attachEvents();
         renderFileList();
+        setTimeout(() => { initCustomSelects(); enhanceFileDropAreas(); }, 50);
       }
 
       function fileDropArea(multiple, title, accept = '.pdf') {
@@ -1090,7 +1090,7 @@
       }
 
       function buildSplitUI() {
-        return `${fileDropArea(false, t('selectPdfSplit'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div style="margin-top:0.8rem;display:flex;gap:0.6rem;align-items:center;"><label>${t('splitMode')}</label><select id="splitMode"><option value="pages">${t('byPage')}</option><option value="range">${t('byRange')}</option></select></div><div id="rangeInputWrap" style="margin-top:0.6rem;display:none;"><input type="text" id="rangeInput" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.5rem;border-radius:2rem;border:1px solid #ddd;"></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startSplit')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfSplit'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div style="margin-top:0.8rem;display:flex;gap:0.6rem;align-items:center;font-weight:600;color:#333;"><label>${t('splitMode')}</label><select id="splitMode"><option value="pages">${t('byPage')}</option><option value="range">${t('byRange')}</option></select></div><div id="rangeInputWrap" style="margin-top:0.6rem;display:none;"><input type="text" id="rangeInput" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.6rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;font-weight:600;font-family:inherit;"></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startSplit')}</button></div>`;
       }
 
       function buildRemovePwdUI() {
@@ -1102,11 +1102,11 @@
       }
 
       function buildWatermarkUI() {
-        return `${fileDropArea(false, t('selectPdfWatermark'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="watermark-settings"><div class="watermark-row"><label>${t('watermarkText')}</label><input type="text" id="watermarkText" value="${t('watermarkTextPlaceholder')}"></div><div class="watermark-row"><label>${t('watermarkPosition')}</label><select id="watermarkPosition"><option value="center">${t('positionCenter')}</option><option value="top">${t('positionTop')}</option><option value="bottom">${t('positionBottom')}</option><option value="full" selected>${t('positionFull')}</option></select></div><div class="watermark-row"><label>${t('watermarkAngle')}</label><input type="range" id="watermarkAngle" min="0" max="90" value="45"><span class="range-value" id="angleVal">45°</span></div><div class="watermark-row"><label>${t('watermarkOpacity')}</label><input type="range" id="watermarkOpacity" min="0.05" max="1" step="0.05" value="0.1"><span class="range-value" id="opacityVal">0.1</span></div><div class="watermark-row"><label>${t('watermarkSize')}</label><input type="range" id="watermarkSize" min="10" max="100" value="40"><span class="range-value" id="sizeVal">40</span></div></div><div class="highlight-box"><span>💧</span><div>${t('watermarkInfo')}</div></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startWatermark')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfWatermark'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="watermark-settings"><div class="watermark-row"><label>${t('watermarkText')}</label><input type="text" id="watermarkText" value="${t('watermarkTextPlaceholder')}" style="padding:0.5rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 2px 2px 5px #bebebe,inset -2px -2px 5px #ffffff;font-weight:600;font-family:inherit;"></div><div class="watermark-row"><label>${t('watermarkPosition')}</label><select id="watermarkPosition"><option value="center">${t('positionCenter')}</option><option value="top">${t('positionTop')}</option><option value="bottom">${t('positionBottom')}</option><option value="full" selected>${t('positionFull')}</option></select></div><div class="watermark-row"><label>${t('watermarkAngle')}</label><input type="range" id="watermarkAngle" min="0" max="90" value="45"><span class="range-value" id="angleVal">45°</span></div><div class="watermark-row"><label>${t('watermarkOpacity')}</label><input type="range" id="watermarkOpacity" min="0.05" max="1" step="0.05" value="0.1"><span class="range-value" id="opacityVal">0.1</span></div><div class="watermark-row"><label>${t('watermarkSize')}</label><input type="range" id="watermarkSize" min="10" max="100" value="40"><span class="range-value" id="sizeVal">40</span></div></div><div class="highlight-box"><span>💧</span><div>${t('watermarkInfo')}</div></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startWatermark')}</button></div>`;
       }
 
       function buildExtractPagesUI() {
-        return `${fileDropArea(false, t('selectPdfExtractPages'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div style="margin-top:0.8rem;"><label style="font-weight:500;">${t('extractRange')}</label><input type="text" id="extractRange" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.5rem;border-radius:2rem;border:1px solid #ddd;margin-top:0.4rem;"></div><div class="info-box">💡 ${t('rangeInfo')}</div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startExtractPages')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfExtractPages'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div style="margin-top:0.8rem;"><label style="font-weight:700;color:#333;">${t('extractRange')}</label><input type="text" id="extractRange" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.6rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;margin-top:0.4rem;font-weight:600;font-family:inherit;"></div><div class="info-box">💡 ${t('rangeInfo')}</div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startExtractPages')}</button></div>`;
       }
 
       function buildPdfToImagesUI() {
@@ -1114,21 +1114,15 @@
       }
 
       function buildImagesToPdfUI() {
-        return `${fileDropArea(true, t('selectImagesToPdf'), '.jpg,.jpeg,.png,.webp,.bmp')}<div style="margin-top:0.8rem;display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;"><label>${t('pageSize')}</label><select id="pageSize"><option value="auto" selected>${t('auto')}</option><option value="a4">A4</option><option value="letter">Letter</option></select><label>${t('fitMode')}</label><select id="fitMode"><option value="fit" selected>${t('fit')}</option><option value="fill">${t('fill')}</option><option value="original">${t('original')}</option></select></div><div class="info-box">💡 ${t('imgInfo')}</div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startCompose')}</button><button class="btn-secondary" id="clearBtn">${t('clearList')}</button></div>`;
+        return `${fileDropArea(true, t('selectImagesToPdf'), '.jpg,.jpeg,.png,.webp,.bmp')}<div style="margin-top:0.8rem;display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;font-weight:600;color:#333;"><label>${t('pageSize')}</label><select id="pageSize"><option value="auto" selected>${t('auto')}</option><option value="a4">A4</option><option value="letter">Letter</option></select><label>${t('fitMode')}</label><select id="fitMode"><option value="fit" selected>${t('fit')}</option><option value="fill">${t('fill')}</option><option value="original">${t('original')}</option></select></div><div class="info-box">💡 ${t('imgInfo')}</div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startCompose')}</button><button class="btn-secondary" id="clearBtn">${t('clearList')}</button></div>`;
       }
 
       async function renderFileList() {
         const listDiv = document.getElementById('fileAreaList');
         if (!listDiv) return;
-        if (!fileEntries.length) {
-          listDiv.innerHTML = '';
-          updatePasswordUI();
-          return;
-        }
+        if (!fileEntries.length) { listDiv.innerHTML = ''; updatePasswordUI(); return; }
         if (currentTool !== 'imagesToPdf') {
-          for (const e of fileEntries) {
-            if (e.encrypted === undefined) e.encrypted = await checkEncrypted(e.file);
-          }
+          for (const e of fileEntries) { if (e.encrypted === undefined) e.encrypted = await checkEncrypted(e.file); }
         }
         updatePasswordUI();
         const useSame = isSamePasswordMode();
@@ -1151,54 +1145,20 @@
       function bindListEvents() {
         const list = document.getElementById('fileAreaList');
         if (!list) return;
-        list.querySelectorAll('.remove-btn').forEach(b => b.onclick = (e) => {
-          e.stopPropagation();
-          fileEntries.splice(parseInt(b.dataset.idx), 1);
-          renderFileList();
-        });
-        list.querySelectorAll('.pwd-input').forEach(i => i.oninput = function() {
-          const idx = parseInt(this.dataset.idx);
-          fileEntries[idx].password = this.value;
-          if (fileEntries[idx].status === 'error') {
-            fileEntries[idx].status = undefined;
-            renderFileList();
-          }
-        });
-        list.querySelectorAll('.btn-retry').forEach(b => b.onclick = () => {
-          const idx = parseInt(b.dataset.idx);
-          fileEntries[idx].status = undefined;
-          renderFileList();
-          executeAction(idx);
-        });
+        list.querySelectorAll('.remove-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); fileEntries.splice(parseInt(b.dataset.idx), 1); renderFileList(); });
+        list.querySelectorAll('.pwd-input').forEach(i => i.oninput = function() { const idx = parseInt(this.dataset.idx); fileEntries[idx].password = this.value; if (fileEntries[idx].status === 'error') { fileEntries[idx].status = undefined; renderFileList(); } });
+        list.querySelectorAll('.btn-retry').forEach(b => b.onclick = () => { const idx = parseInt(b.dataset.idx); fileEntries[idx].status = undefined; renderFileList(); executeAction(idx); });
         setupDragSort(list);
       }
 
       function setupDragSort(list) {
         let dragIdx = null;
         list.querySelectorAll('.file-list-item').forEach(item => {
-          item.addEventListener('dragstart', () => {
-            dragIdx = parseInt(item.dataset.idx);
-            item.style.opacity = '0.5';
-          });
-          item.addEventListener('dragend', () => {
-            item.style.opacity = '1';
-            list.querySelectorAll('.file-list-item').forEach(el => el.classList.remove('drag-over'));
-          });
-          item.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            item.classList.add('drag-over');
-          });
+          item.addEventListener('dragstart', () => { dragIdx = parseInt(item.dataset.idx); item.style.opacity = '0.5'; });
+          item.addEventListener('dragend', () => { item.style.opacity = '1'; list.querySelectorAll('.file-list-item').forEach(el => el.classList.remove('drag-over')); });
+          item.addEventListener('dragover', (e) => { e.preventDefault(); item.classList.add('drag-over'); });
           item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
-          item.addEventListener('drop', (e) => {
-            e.preventDefault();
-            item.classList.remove('drag-over');
-            const dropIdx = parseInt(item.dataset.idx);
-            if (dragIdx !== null && dragIdx !== dropIdx) {
-              const [m] = fileEntries.splice(dragIdx, 1);
-              fileEntries.splice(dropIdx, 0, m);
-              renderFileList();
-            }
-          });
+          item.addEventListener('drop', (e) => { e.preventDefault(); item.classList.remove('drag-over'); const dropIdx = parseInt(item.dataset.idx); if (dragIdx !== null && dragIdx !== dropIdx) { const [m] = fileEntries.splice(dragIdx, 1); fileEntries.splice(dropIdx, 0, m); renderFileList(); } });
         });
       }
 
@@ -1211,33 +1171,16 @@
         if (sr) sr.style.display = (hasEnc && fileEntries.length > 1 && multiFileTools.includes(currentTool)) ? 'flex' : 'none';
       }
 
-      function isSamePasswordMode() {
-        const c = document.getElementById('samePwdCheck');
-        return c ? c.checked : true;
-      }
-
-      function getPasswordForFile(idx) {
-        return isSamePasswordMode() ? (document.getElementById('globalPassword')?.value || '') : (fileEntries[idx]?.password || '');
-      }
-
-      function escapeHtml(s) {
-        const d = document.createElement('div');
-        d.textContent = s;
-        return d.innerHTML;
-      }
+      function isSamePasswordMode() { const c = document.getElementById('samePwdCheck'); return c ? c.checked : true; }
+      function getPasswordForFile(idx) { return isSamePasswordMode() ? (document.getElementById('globalPassword')?.value || '') : (fileEntries[idx]?.password || ''); }
+      function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
       function download(blob, name) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = name;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 200);
+        a.href = url; a.download = name; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
       }
 
       function parseRange(s, total) {
@@ -1245,14 +1188,8 @@
         if (!s.trim()) return [...Array(total).keys()];
         s.split(',').forEach(p => {
           p = p.trim();
-          if (p.includes('-')) {
-            const [a, b] = p.split('-').map(Number);
-            for (let i = a; i <= b; i++)
-              if (i >= 1 && i <= total) set.add(i - 1);
-          } else {
-            const n = Number(p);
-            if (n >= 1 && n <= total) set.add(n - 1);
-          }
+          if (p.includes('-')) { const [a, b] = p.split('-').map(Number); for (let i = a; i <= b; i++) if (i >= 1 && i <= total) set.add(i - 1); }
+          else { const n = Number(p); if (n >= 1 && n <= total) set.add(n - 1); }
         });
         return [...set].sort((a, b) => a - b);
       }
@@ -1263,58 +1200,81 @@
         toolsGrid.querySelectorAll('.tool-btn').forEach(b => b.style.pointerEvents = disabled ? 'none' : 'auto');
       }
 
+      function initCustomSelects() {
+        document.querySelectorAll('select:not(.native-select)').forEach(select => {
+          if (select.parentElement.classList.contains('custom-select-wrapper')) return;
+          const wrapper = document.createElement('div'); wrapper.className = 'custom-select-wrapper';
+          const display = document.createElement('div'); display.className = 'custom-select-display';
+          const displayText = document.createElement('span');
+          const arrow = document.createElement('span'); arrow.className = 'arrow'; arrow.textContent = '▼';
+          const dropdown = document.createElement('div'); dropdown.className = 'custom-select-dropdown';
+          Array.from(select.options).forEach(option => {
+            const opt = document.createElement('div'); opt.className = 'custom-select-option';
+            if (option.selected) opt.classList.add('selected');
+            opt.textContent = option.text; opt.dataset.value = option.value;
+            opt.addEventListener('click', (e) => {
+              e.stopPropagation();
+              dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+              opt.classList.add('selected'); displayText.textContent = opt.textContent;
+              select.value = opt.dataset.value;
+              select.dispatchEvent(new Event('change', { bubbles: true }));
+              dropdown.classList.remove('open'); display.classList.remove('open');
+            });
+            dropdown.appendChild(opt);
+          });
+          const selectedOption = select.selectedOptions[0];
+          displayText.textContent = selectedOption ? selectedOption.text : '';
+          display.appendChild(displayText); display.appendChild(arrow);
+          display.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = dropdown.classList.contains('open');
+            document.querySelectorAll('.custom-select-dropdown.open').forEach(d => { d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); });
+            if (!isOpen) { dropdown.classList.add('open'); display.classList.add('open'); }
+            else { dropdown.classList.remove('open'); display.classList.remove('open'); }
+          });
+          wrapper.appendChild(display); wrapper.appendChild(dropdown);
+          select.style.display = 'none'; select.classList.add('native-select');
+          select.parentElement.insertBefore(wrapper, select); wrapper.appendChild(select);
+        });
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.custom-select-wrapper')) {
+            document.querySelectorAll('.custom-select-dropdown.open').forEach(d => { d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); });
+          }
+        });
+      }
+
+      function enhanceFileDropAreas() {
+        document.querySelectorAll('.file-area').forEach(area => {
+          const input = area.querySelector('.file-input');
+          if (!input || area.querySelector('.custom-file-btn')) return;
+          const btn = document.createElement('button');
+          btn.className = 'custom-file-btn';
+          btn.style.cssText = 'display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.2rem;border-radius:1.5rem;background:#e0e0e0;box-shadow:6px 6px 12px #c8c8c8,-6px -6px 12px #ffffff;border:none;cursor:pointer;font-weight:700;color:#333;font-family:inherit;font-size:0.9rem;margin-top:0.5rem;';
+          btn.innerHTML = `<span style="font-size:1.2rem;">📁</span> ${t('browseFiles')}`;
+          btn.addEventListener('click', (e) => { e.stopPropagation(); input.click(); });
+          area.appendChild(btn);
+        });
+      }
+
       function attachEvents() {
         const area = document.getElementById('fileArea');
         const input = document.getElementById('fileAreaInput');
         if (area && input) {
           area.onclick = () => input.click();
-          area.ondragover = (e) => {
-            e.preventDefault();
-            area.classList.add('dragover');
-          };
+          area.ondragover = (e) => { e.preventDefault(); area.classList.add('dragover'); };
           area.ondragleave = () => area.classList.remove('dragover');
           area.ondrop = (e) => {
-            e.preventDefault();
-            area.classList.remove('dragover');
-            const fs = Array.from(e.dataTransfer.files).filter(f => {
-              if (currentTool === 'imagesToPdf') return f.type.startsWith('image/');
-              return f.type === 'application/pdf' || f.name.endsWith('.pdf');
-            });
-            if (fs.length) {
-              if (!multiFileTools.includes(currentTool)) fileEntries = [];
-              const validFiles = fs.filter(validateFile);
-              fileEntries.push(...validFiles.map(f => ({ file: f, password: '', status: undefined, encrypted: undefined })));
-              renderFileList();
-            }
+            e.preventDefault(); area.classList.remove('dragover');
+            const fs = Array.from(e.dataTransfer.files).filter(f => { if (currentTool === 'imagesToPdf') return f.type.startsWith('image/'); return f.type === 'application/pdf' || f.name.endsWith('.pdf'); });
+            if (fs.length) { if (!multiFileTools.includes(currentTool)) fileEntries = []; const validFiles = fs.filter(validateFile); fileEntries.push(...validFiles.map(f => ({ file: f, password: '', status: undefined, encrypted: undefined }))); renderFileList(); }
           };
-          input.onchange = () => {
-            const fs = Array.from(input.files);
-            if (!multiFileTools.includes(currentTool)) fileEntries = [];
-            const validFiles = fs.filter(validateFile);
-            fileEntries.push(...validFiles.map(f => ({ file: f, password: '', status: undefined, encrypted: undefined })));
-            input.value = '';
-            renderFileList();
-          };
+          input.onchange = () => { const fs = Array.from(input.files); if (!multiFileTools.includes(currentTool)) fileEntries = []; const validFiles = fs.filter(validateFile); fileEntries.push(...validFiles.map(f => ({ file: f, password: '', status: undefined, encrypted: undefined }))); input.value = ''; renderFileList(); };
         }
-        document.getElementById('clearBtn')?.addEventListener('click', () => {
-          fileEntries = [];
-          renderFileList();
-        });
+        document.getElementById('clearBtn')?.addEventListener('click', () => { fileEntries = []; renderFileList(); });
         document.getElementById('samePwdCheck')?.addEventListener('change', renderFileList);
-        document.querySelectorAll('.toggle-pwd').forEach(b => b.onclick = () => {
-          const tg = document.getElementById(b.dataset.target);
-          if (tg) {
-            tg.type = tg.type === 'password' ? 'text' : 'password';
-            b.textContent = tg.type === 'password' ? t('show') : t('hide');
-          }
-        });
-        document.getElementById('splitMode')?.addEventListener('change', (e) => {
-          const w = document.getElementById('rangeInputWrap');
-          if (w) w.style.display = e.target.value === 'range' ? 'block' : 'none';
-        });
-        const angleEl = document.getElementById('watermarkAngle');
-        const opacityEl = document.getElementById('watermarkOpacity');
-        const sizeEl = document.getElementById('watermarkSize');
+        document.querySelectorAll('.toggle-pwd').forEach(b => b.onclick = () => { const tg = document.getElementById(b.dataset.target); if (tg) { tg.type = tg.type === 'password' ? 'text' : 'password'; b.textContent = tg.type === 'password' ? t('show') : t('hide'); } });
+        document.getElementById('splitMode')?.addEventListener('change', (e) => { const w = document.getElementById('rangeInputWrap'); if (w) w.style.display = e.target.value === 'range' ? 'block' : 'none'; setTimeout(initCustomSelects, 50); });
+        const angleEl = document.getElementById('watermarkAngle'); const opacityEl = document.getElementById('watermarkOpacity'); const sizeEl = document.getElementById('watermarkSize');
         if (angleEl) angleEl.oninput = () => { const v = document.getElementById('angleVal'); if (v) v.textContent = angleEl.value + '°'; };
         if (opacityEl) opacityEl.oninput = () => { const v = document.getElementById('opacityVal'); if (v) v.textContent = opacityEl.value; };
         if (sizeEl) sizeEl.oninput = () => { const v = document.getElementById('sizeVal'); if (v) v.textContent = sizeEl.value; };
@@ -1323,48 +1283,22 @@
 
       async function executeAction(startIdx = 0) {
         if (isProcessing) return;
-        if (!fileEntries.length) {
-          setStatus(t('noFile'), 'warn');
-          return;
-        }
-        isProcessing = true;
-        setButtonsDisabled(true);
+        if (!fileEntries.length) { setStatus(t('noFile'), 'warn'); return; }
+        isProcessing = true; setButtonsDisabled(true);
         try {
-          const actions = {
-            merge: () => doMerge(startIdx),
-            split: doSplit,
-            removePassword: () => doRemovePassword(startIdx),
-            compress: doCompress,
-            watermark: doWatermark,
-            extractPages: doExtractPages,
-            pdfToImages: doPdfToImages,
-            imagesToPdf: doImagesToPdf
-          };
+          const actions = { merge: () => doMerge(startIdx), split: doSplit, removePassword: () => doRemovePassword(startIdx), compress: doCompress, watermark: doWatermark, extractPages: doExtractPages, pdfToImages: doPdfToImages, imagesToPdf: doImagesToPdf };
           await (actions[currentTool] || (() => {}))();
-        } catch (err) {
-          setStatus(`❌ ${err.message}`, 'error');
-        } finally {
-          isProcessing = false;
-          setButtonsDisabled(false);
-        }
+        } catch (err) { setStatus(`❌ ${err.message}`, 'error'); }
+        finally { isProcessing = false; setButtonsDisabled(false); }
       }
 
       async function doMerge(startIdx) {
-        if (fileEntries.length < 2) {
-          setStatus(t('atLeast2'), 'warn');
-          return;
-        }
+        if (fileEntries.length < 2) { setStatus(t('atLeast2'), 'warn'); return; }
         const allImages = [];
         for (let i = startIdx; i < fileEntries.length; i++) {
           setProgress((i / fileEntries.length) * 100, `${t('processing')} ${fileEntries[i].file.name}`);
-          try {
-            const { pageImages } = await processPdf(fileEntries[i].file, getPasswordForFile(i));
-            allImages.push(...pageImages);
-            fileEntries[i].status = 'ok';
-          } catch (err) {
-            handleError(err, i);
-            return;
-          }
+          try { const { pageImages } = await processPdf(fileEntries[i].file, getPasswordForFile(i)); allImages.push(...pageImages); fileEntries[i].status = 'ok'; }
+          catch (err) { handleError(err, i); return; }
         }
         setProgress(100, t('generating'));
         download(new Blob([await createPdfFromImages(allImages)], { type: 'application/pdf' }), 'merged.pdf');
@@ -1374,35 +1308,40 @@
       }
 
       async function doSplit() {
-        const { pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0));
-        const mode = document.getElementById('splitMode')?.value || 'pages';
-        if (mode === 'pages') {
-          for (let i = 0; i < pageImages.length; i++) {
-            setProgress((i / pageImages.length) * 100);
-            download(new Blob([await createPdfFromImages([pageImages[i]])], { type: 'application/pdf' }), `page_${i+1}.pdf`);
-          }
-        } else {
-          const indices = parseRange(document.getElementById('rangeInput')?.value || '', pageImages.length);
-          if (!indices.length) {
+    setProgress(10, t('processing'));
+    
+    const { pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0));
+    const mode = document.getElementById('splitMode')?.value || 'pages';
+    
+    setProgress(30, `${t('processing')} (${pageImages.length}${t('pages')})`);
+    
+    if (mode === 'pages') {
+        for (let i = 0; i < pageImages.length; i++) {
+            setProgress(30 + ((i / pageImages.length) * 60), `生成第 ${i+1}/${pageImages.length} 页...`);
+            const pdfBytes = await createPdfFromImages([pageImages[i]]);
+            download(new Blob([pdfBytes], { type: 'application/pdf' }), `page_${i+1}.pdf`);
+        }
+        setProgress(100, t('splitSuccess'));
+    } else {
+        const indices = parseRange(document.getElementById('rangeInput')?.value || '', pageImages.length);
+        if (!indices.length) {
             setStatus(t('invalidRange'), 'warn');
             return;
-          }
-          download(new Blob([await createPdfFromImages(indices.map(i => pageImages[i]))], { type: 'application/pdf' }), 'split.pdf');
         }
-        setStatus(`✅ ${t('splitSuccess')}`, 'success');
-      }
+        setProgress(50, t('processing'));
+        const bytes = await createPdfFromImages(indices.map(i => pageImages[i]));
+        setProgress(100);
+        download(new Blob([bytes], { type: 'application/pdf' }), 'split.pdf');
+    }
+    
+    setStatus(`✅ ${t('splitSuccess')} (${pageImages.length}${t('pages')})`, 'success');
+}
 
       async function doRemovePassword(startIdx) {
         for (let i = startIdx; i < fileEntries.length; i++) {
           setProgress((i / fileEntries.length) * 100, `${t('processing')} ${fileEntries[i].file.name}`);
-          try {
-            const { pageImages } = await processPdf(fileEntries[i].file, getPasswordForFile(i));
-            download(new Blob([await createPdfFromImages(pageImages)], { type: 'application/pdf' }), fileEntries[i].file.name.replace(/\.pdf$/i, '') + '_no_password.pdf');
-            fileEntries[i].status = 'ok';
-          } catch (err) {
-            handleError(err, i);
-            return;
-          }
+          try { const { pageImages } = await processPdf(fileEntries[i].file, getPasswordForFile(i)); download(new Blob([await createPdfFromImages(pageImages)], { type: 'application/pdf' }), fileEntries[i].file.name.replace(/\.pdf$/i, '') + '_no_password.pdf'); fileEntries[i].status = 'ok'; }
+          catch (err) { handleError(err, i); return; }
         }
         fileEntries.forEach(e => e.status = undefined);
         setStatus(`✅ ${t('extractSuccess')}`, 'success');
@@ -1419,41 +1358,24 @@
 
       function renderTextToImage(text, options = {}) {
         const { fontSize = 40, angle = -45, opacity = 0.1, color = '#666666' } = options;
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
         ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "SimHei", "Noto Sans SC", sans-serif`;
-        const textMetrics = ctx.measureText(text);
-        const textWidth = textMetrics.width;
-        const textHeight = fontSize * 1.2;
-        const angleRad = (angle * Math.PI) / 180;
-        const cosA = Math.abs(Math.cos(angleRad));
-        const sinA = Math.abs(Math.sin(angleRad));
-        const rotatedWidth = textWidth * cosA + textHeight * sinA;
-        const rotatedHeight = textWidth * sinA + textHeight * cosA;
+        const textMetrics = ctx.measureText(text); const textWidth = textMetrics.width; const textHeight = fontSize * 1.2;
+        const angleRad = (angle * Math.PI) / 180; const cosA = Math.abs(Math.cos(angleRad)); const sinA = Math.abs(Math.sin(angleRad));
+        const rotatedWidth = textWidth * cosA + textHeight * sinA; const rotatedHeight = textWidth * sinA + textHeight * cosA;
         const padding = Math.max(fontSize, 20);
-        canvas.width = Math.ceil(rotatedWidth + padding * 2);
-        canvas.height = Math.ceil(rotatedHeight + padding * 2);
+        canvas.width = Math.ceil(rotatedWidth + padding * 2); canvas.height = Math.ceil(rotatedHeight + padding * 2);
         ctx.font = `bold ${fontSize}px Arial, "Microsoft YaHei", "SimHei", "Noto Sans SC", sans-serif`;
-        ctx.fillStyle = color;
-        ctx.globalAlpha = opacity;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(angleRad);
-        ctx.fillText(text, 0, 0);
-        return new Promise(resolve => {
-          canvas.toBlob(resolve, 'image/png');
-        });
+        ctx.fillStyle = color; ctx.globalAlpha = opacity; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.translate(canvas.width / 2, canvas.height / 2); ctx.rotate(angleRad); ctx.fillText(text, 0, 0);
+        return new Promise(resolve => { canvas.toBlob(resolve, 'image/png'); });
       }
 
       async function doWatermark() {
         setProgress(0, t('processing'));
         const { PDFDocument } = PDFLib;
         const text = document.getElementById('watermarkText')?.value || '';
-        if (!text.trim()) {
-          setStatus('❌ 请输入水印文字', 'warn');
-          return;
-        }
+        if (!text.trim()) { setStatus('❌ 请输入水印文字', 'warn'); return; }
         const position = document.getElementById('watermarkPosition')?.value || 'full';
         const angleVal = parseFloat(document.getElementById('watermarkAngle')?.value || '45');
         const opacityVal = parseFloat(document.getElementById('watermarkOpacity')?.value || '0.1');
@@ -1461,56 +1383,38 @@
         const arrayBuf = await fileEntries[0].file.arrayBuffer();
         const needsPwd = await checkEncrypted(fileEntries[0].file);
         let pdfDoc;
-        if (needsPwd) {
-          const password = getPasswordForFile(0);
-          if (!password) {
-            setStatus(t('needPassword'), 'warn');
-            return;
-          }
-          pdfDoc = await PDFDocument.load(arrayBuf, { password });
-        } else {
-          pdfDoc = await PDFDocument.load(arrayBuf);
-        }
+        if (needsPwd) { const password = getPasswordForFile(0); if (!password) { setStatus(t('needPassword'), 'warn'); return; } pdfDoc = await PDFDocument.load(arrayBuf, { password }); }
+        else { pdfDoc = await PDFDocument.load(arrayBuf); }
         setProgress(20, '生成水印...');
-        const watermarkBlob = await renderTextToImage(text, { fontSize: fontSize, angle: -angleVal, opacity: opacityVal });
+        const watermarkBlob = await renderTextToImage(text, { fontSize, angle: -angleVal, opacity: opacityVal });
         const watermarkBytes = await watermarkBlob.arrayBuffer();
         const watermarkImage = await pdfDoc.embedPng(watermarkBytes);
         setProgress(40, '添加水印...');
-        const pages = pdfDoc.getPages();
-        const totalPages = pages.length;
+        const pages = pdfDoc.getPages(); const totalPages = pages.length;
         for (let i = 0; i < totalPages; i++) {
-          const page = pages[i];
-          const progress = 40 + (i / totalPages) * 40;
-          setProgress(progress);
-          const { width, height } = page.getSize();
-          const maxWidth = width * 0.3;
+          const page = pages[i]; setProgress(40 + (i / totalPages) * 40);
+          const { width, height } = page.getSize(); const maxWidth = width * 0.3;
           const scale = Math.min(1, maxWidth / watermarkImage.width);
-          const imgWidth = watermarkImage.width * scale;
-          const imgHeight = watermarkImage.height * scale;
+          const imgWidth = watermarkImage.width * scale; const imgHeight = watermarkImage.height * scale;
           if (position === 'full') {
-            const xSpacing = imgWidth * 1.2;
-            const ySpacing = imgHeight * 1.5;
-            let rowOffset = 0;
+            const xSpacing = imgWidth * 1.2; const ySpacing = imgHeight * 1.5; let rowOffset = 0;
             for (let y = -imgHeight/2; y < height + imgHeight; y += ySpacing) {
               rowOffset = (rowOffset + xSpacing * 0.5) % xSpacing;
               for (let x = -imgWidth/2 + rowOffset; x < width + imgWidth; x += xSpacing) {
-                page.drawImage(watermarkImage, { x: x, y: y, width: imgWidth, height: imgHeight, opacity: 1 });
+                page.drawImage(watermarkImage, { x, y, width: imgWidth, height: imgHeight, opacity: 1 });
               }
             }
           } else {
-            let x = (width - imgWidth) / 2;
-            let y = (height - imgHeight) / 2;
+            let x = (width - imgWidth) / 2; let y = (height - imgHeight) / 2;
             if (position === 'top') y = height - imgHeight - 30;
             else if (position === 'bottom') y = 30;
-            page.drawImage(watermarkImage, { x: x, y: y, width: imgWidth, height: imgHeight, opacity: 1 });
+            page.drawImage(watermarkImage, { x, y, width: imgWidth, height: imgHeight, opacity: 1 });
           }
         }
         setProgress(85, t('generating'));
-        const pdfBytes = await pdfDoc.save();
-        setProgress(100);
+        const pdfBytes = await pdfDoc.save(); setProgress(100);
         const originalName = fileEntries[0].file.name.replace(/\.pdf$/i, '');
-        const fileName = `${originalName}_watermarked.pdf`;
-        download(new Blob([pdfBytes], { type: 'application/pdf' }), fileName);
+        download(new Blob([pdfBytes], { type: 'application/pdf' }), `${originalName}_watermarked.pdf`);
         setStatus(`✅ ${t('watermarkSuccess')}`, 'success');
       }
 
@@ -1519,12 +1423,9 @@
         const { pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0));
         const rangeStr = document.getElementById('extractRange')?.value || '';
         const indices = parseRange(rangeStr, pageImages.length);
-        if (!indices.length) {
-          setStatus(t('pleaseEnterRange'), 'warn');
-          return;
-        }
+        if (!indices.length) { setStatus(t('pleaseEnterRange'), 'warn'); return; }
         const bytes = await createPdfFromImages(indices.map(i => pageImages[i]));
-        download(new Blob([bytes], { type: 'application/pdf' }), `extracted_pages.pdf`);
+        download(new Blob([bytes], { type: 'application/pdf' }), 'extracted_pages.pdf');
         setStatus(`✅ ${t('extractSuccess')} (${indices.length}${t('pages')})`, 'success');
       }
 
@@ -1533,52 +1434,23 @@
         const { pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0));
         const format = document.getElementById('outputFormat')?.value || 'jpeg';
         const useZip = document.getElementById('zipDownload')?.checked ?? false;
-        if (pageImages.length === 1 && !useZip) {
-          const blob = format === 'png' ? await jpegToPng(pageImages[0].blob) : pageImages[0].blob;
-          download(blob, `page_1.${format}`);
-        } else if (useZip && typeof JSZip !== 'undefined') {
-          const zip = new JSZip();
-          for (let i = 0; i < pageImages.length; i++) {
-            setProgress((i / pageImages.length) * 100);
-            const blob = format === 'png' ? await jpegToPng(pageImages[i].blob) : pageImages[i].blob;
-            zip.file(`page_${i+1}.${format}`, blob);
-          }
-          download(await zip.generateAsync({ type: 'blob' }), 'pdf_images.zip');
-        } else {
-          for (let i = 0; i < pageImages.length; i++) {
-            setProgress((i / pageImages.length) * 100);
-            const blob = format === 'png' ? await jpegToPng(pageImages[i].blob) : pageImages[i].blob;
-            download(blob, `page_${i+1}.${format}`);
-          }
-        }
+        if (pageImages.length === 1 && !useZip) { const blob = format === 'png' ? await jpegToPng(pageImages[0].blob) : pageImages[0].blob; download(blob, `page_1.${format}`); }
+        else if (useZip && typeof JSZip !== 'undefined') { const zip = new JSZip(); for (let i = 0; i < pageImages.length; i++) { setProgress((i / pageImages.length) * 100); const blob = format === 'png' ? await jpegToPng(pageImages[i].blob) : pageImages[i].blob; zip.file(`page_${i+1}.${format}`, blob); } download(await zip.generateAsync({ type: 'blob' }), 'pdf_images.zip'); }
+        else { for (let i = 0; i < pageImages.length; i++) { setProgress((i / pageImages.length) * 100); const blob = format === 'png' ? await jpegToPng(pageImages[i].blob) : pageImages[i].blob; download(blob, `page_${i+1}.${format}`); } }
         setStatus(`✅ ${t('convertSuccess')} (${pageImages.length})`, 'success');
       }
 
       async function jpegToPng(jpegBlob) {
-        return new Promise(resolve => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            canvas.getContext('2d').drawImage(img, 0, 0);
-            canvas.toBlob(resolve, 'image/png');
-          };
-          img.src = URL.createObjectURL(jpegBlob);
-        });
+        return new Promise(resolve => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; canvas.getContext('2d').drawImage(img, 0, 0); canvas.toBlob(resolve, 'image/png'); }; img.src = URL.createObjectURL(jpegBlob); });
       }
 
       async function doImagesToPdf() {
-        if (fileEntries.length === 0) {
-          setStatus(t('noFile'), 'warn');
-          return;
-        }
+        if (fileEntries.length === 0) { setStatus(t('noFile'), 'warn'); return; }
         setProgress(0, t('processing'));
         const pageSize = document.getElementById('pageSize')?.value || 'auto';
         const fitMode = document.getElementById('fitMode')?.value || 'fit';
         const pageDims = { a4: [595, 842], letter: [612, 792] };
-        const { PDFDocument } = PDFLib;
-        const doc = await PDFDocument.create();
+        const { PDFDocument } = PDFLib; const doc = await PDFDocument.create();
         for (let i = 0; i < fileEntries.length; i++) {
           setProgress((i / fileEntries.length) * 100, `${t('processing')} ${fileEntries[i].file.name}`);
           const buf = await fileEntries[i].file.arrayBuffer();
@@ -1586,22 +1458,13 @@
           let img;
           if (ext === 'png') img = await doc.embedPng(buf);
           else if (ext === 'jpg' || ext === 'jpeg') img = await doc.embedJpg(buf);
-          else {
-            try { img = await doc.embedPng(buf); } catch (e) { img = await doc.embedJpg(buf); }
-          }
+          else { try { img = await doc.embedPng(buf); } catch (e) { img = await doc.embedJpg(buf); } }
           let pw, ph;
           if (pageSize === 'auto') { pw = img.width; ph = img.height; } else { [pw, ph] = pageDims[pageSize]; }
           const page = doc.addPage([pw, ph]);
           let dw = img.width, dh = img.height;
-          if (fitMode === 'fit') {
-            const s = Math.min(pw / img.width, ph / img.height);
-            dw = img.width * s;
-            dh = img.height * s;
-          } else if (fitMode === 'fill') {
-            const s = Math.max(pw / img.width, ph / img.height);
-            dw = img.width * s;
-            dh = img.height * s;
-          }
+          if (fitMode === 'fit') { const s = Math.min(pw / img.width, ph / img.height); dw = img.width * s; dh = img.height * s; }
+          else if (fitMode === 'fill') { const s = Math.max(pw / img.width, ph / img.height); dw = img.width * s; dh = img.height * s; }
           page.drawImage(img, { x: (pw - dw) / 2, y: (ph - dh) / 2, width: dw, height: dh });
           fileEntries[i].status = 'ok';
         }
@@ -1612,41 +1475,13 @@
         renderFileList();
       }
 
-      // 菜单事件
-      document.getElementById('menuButton').addEventListener('click', function(e) {
-        e.stopPropagation();
-        var dd = document.getElementById('menuDropdown');
-        if (dd.classList.contains('show')) {
-          dd.classList.remove('show');
-        } else {
-          dd.classList.add('show');
-        }
-      });
+      document.getElementById('menuButton').addEventListener('click', function(e) { e.stopPropagation(); var dd = document.getElementById('menuDropdown'); if (dd.classList.contains('show')) { dd.classList.remove('show'); } else { dd.classList.add('show'); } });
+      document.addEventListener('click', function(e) { if (!e.target.closest('#menuContainer')) { var dd = document.getElementById('menuDropdown'); if (dd) dd.classList.remove('show'); } });
+      document.getElementById('installAppBtn').addEventListener('click', function() { document.getElementById('menuDropdown').classList.remove('show'); installPWA(); });
+      document.getElementById('languageMenuItem').addEventListener('click', function() { document.getElementById('menuDropdown').classList.remove('show'); showLanguageSelector(); });
+      window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); window._deferredPrompt = e; updateMenuLanguage(); });
 
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('#menuContainer')) {
-          var dd = document.getElementById('menuDropdown');
-          if (dd) dd.classList.remove('show');
-        }
-      });
-
-      document.getElementById('installAppBtn').addEventListener('click', function() {
-        document.getElementById('menuDropdown').classList.remove('show');
-        installPWA();
-      });
-
-      document.getElementById('languageMenuItem').addEventListener('click', function() {
-        document.getElementById('menuDropdown').classList.remove('show');
-        showLanguageSelector();
-      });
-
-      window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault();
-        window._deferredPrompt = e;
-        updateMenuLanguage();
-      });
-
-      // 初始化
+      setTimeout(() => { initCustomSelects(); enhanceFileDropAreas(); }, 200);
       updateAllTexts();
     })();
   </script>

@@ -809,6 +809,7 @@
           fit: '适应', fill: '填充', original: '原始',
           imgInfo: '支持 JPG、PNG、WebP、BMP 格式。可拖拽排序，按顺序合成PDF。', startCompose: '📸 合成为PDF',
           needPassword: '需要密码', wrongPassword: '密码错误',
+          decryptFailed: '密码正确，但该PDF使用了当前不支持的加密方式，暂时无法处理',
           mergeSuccess: '合并完成', splitSuccess: '拆分完成', watermarkSuccess: '水印添加完成',
           compressSuccess: '压缩完成', convertSuccess: '转换完成', composeSuccess: '合成完成', extractSuccess: '提取完成',
           noFile: '请先选择文件', processing: '正在处理...', generating: '生成PDF...',
@@ -855,6 +856,7 @@
           fit: 'Fit', fill: 'Fill', original: 'Original',
           imgInfo: 'Supports JPG, PNG, WebP, BMP. Drag to reorder.', startCompose: '📸 Compose PDF',
           needPassword: 'Need Password', wrongPassword: 'Wrong Password',
+          decryptFailed: 'Password is correct, but this PDF uses an encryption method that isn\'t supported yet',
           mergeSuccess: 'Merge Complete', splitSuccess: 'Split Complete', watermarkSuccess: 'Watermark Added',
           compressSuccess: 'Compress Complete', convertSuccess: 'Convert Complete', composeSuccess: 'Compose Complete', extractSuccess: 'Extract Complete',
           noFile: 'Please select files', processing: 'Processing...', generating: 'Generating PDF...',
@@ -1070,9 +1072,17 @@
         try {
           return needsPwd ? await PDFDocument.load(arrayBuf, { password }) : await PDFDocument.load(arrayBuf);
         } catch (e) {
-          if (needsPwd) throw new Error('INCORRECT_PASSWORD');
-          throw e;
+          if (!needsPwd) throw e;
+          throw classifyDecryptError(e);
         }
+      }
+
+      // pdf-lib 在密码提供但仍加载失败时,并不总是意味着密码错误——
+      // 也可能是不受支持的加密算法等其他原因。只有错误信息明确提到密码时才归类为"密码错误"，
+      // 避免把"其实密码是对的，但库无法处理"的情况误报给用户。
+      function classifyDecryptError(e) {
+        const msg = (e && e.message) || '';
+        return /incorrect password/i.test(msg) ? new Error('INCORRECT_PASSWORD') : new Error('DECRYPT_FAILED');
       }
 
       function handleError(err, idx) {
@@ -1080,6 +1090,7 @@
         if (!entry) return;
         if (err.message === 'NEED_PASSWORD') { entry.status = 'error'; setStatus(`⚠️ ${t('needPassword')}`, 'warn'); }
         else if (err.message === 'INCORRECT_PASSWORD') { entry.status = 'error'; setStatus(`❌ ${t('wrongPassword')}`, 'warn'); }
+        else if (err.message === 'DECRYPT_FAILED') { entry.status = 'error'; setStatus(`❌ ${t('decryptFailed')}`, 'error'); }
         else { setStatus(`❌ ${err.message}`, 'error'); }
         renderFileList();
       }
@@ -1447,7 +1458,7 @@
         try {
           if (needsPwd) { const password = getPasswordForFile(0); if (!password) { setStatus(`⚠️ ${t('needPassword')}`, 'warn'); return; } pdfDoc = await PDFDocument.load(arrayBuf, { password }); }
           else { pdfDoc = await PDFDocument.load(arrayBuf); }
-        } catch (err) { handleError(new Error('INCORRECT_PASSWORD'), 0); return; }
+        } catch (err) { handleError(classifyDecryptError(err), 0); return; }
         setProgress(20, '生成水印...');
         const watermarkBlob = await renderTextToImage(text, { fontSize, angle: -angleVal, opacity: opacityVal });
         const watermarkBytes = await watermarkBlob.arrayBuffer();

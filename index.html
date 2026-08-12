@@ -810,6 +810,8 @@
           imgInfo: '支持 JPG、PNG、WebP、BMP 格式。可拖拽排序，按顺序合成PDF。', startCompose: '📸 合成为PDF',
           needPassword: '需要密码', wrongPassword: '密码错误',
           decryptFailed: '密码正确，但该PDF使用了当前不支持的加密方式，暂时无法处理',
+          compatMode: '兼容模式处理中...',
+          compatModeNote: '该PDF加密方式特殊，已用兼容模式导出，文字将不可选中/复制',
           mergeSuccess: '合并完成', splitSuccess: '拆分完成', watermarkSuccess: '水印添加完成',
           compressSuccess: '压缩完成', convertSuccess: '转换完成', composeSuccess: '合成完成', extractSuccess: '提取完成',
           noFile: '请先选择文件', processing: '正在处理...', generating: '生成PDF...',
@@ -857,6 +859,8 @@
           imgInfo: 'Supports JPG, PNG, WebP, BMP. Drag to reorder.', startCompose: '📸 Compose PDF',
           needPassword: 'Need Password', wrongPassword: 'Wrong Password',
           decryptFailed: 'Password is correct, but this PDF uses an encryption method that isn\'t supported yet',
+          compatMode: 'Processing in compatibility mode...',
+          compatModeNote: 'This PDF used an unusual encryption method, so it was exported in compatibility mode - text will no longer be selectable/copyable',
           mergeSuccess: 'Merge Complete', splitSuccess: 'Split Complete', watermarkSuccess: 'Watermark Added',
           compressSuccess: 'Compress Complete', convertSuccess: 'Convert Complete', composeSuccess: 'Compose Complete', extractSuccess: 'Extract Complete',
           noFile: 'Please select files', processing: 'Processing...', generating: 'Generating PDF...',
@@ -1055,6 +1059,21 @@
         catch (e) { return !!(e.name === 'PasswordException' || (e.message && e.message.includes('password'))); }
       }
 
+      // pdf-lib 内置的 {password} 选项只能较好地支持较旧的加密方式(RC4/AES-128等)。
+      // 对于 AES-256 (V=5,R=6，PDF 2.0标准，很多新版WPS/Adobe默认使用) 它经常无法正确解密。
+      // 这里用专门支持AES-256的轻量解密库做兜底：先把原始字节解密成明文PDF字节，再交给pdf-lib处理。
+      let _pdfDecryptModulePromise = null;
+      function loadPdfDecryptModule() {
+        if (!_pdfDecryptModulePromise) {
+          _pdfDecryptModulePromise = import('https://cdn.jsdelivr.net/npm/@pdfsmaller/pdf-decrypt@1/+esm');
+        }
+        return _pdfDecryptModulePromise;
+      }
+      async function decryptWithFallback(arrayBuf, password) {
+        const mod = await loadPdfDecryptModule();
+        return await mod.decryptPDF(new Uint8Array(arrayBuf), password);
+      }
+
       async function processPdf(file, password = '', knownEncrypted = null) {
         const needsPwd = knownEncrypted !== null ? knownEncrypted : await checkEncrypted(file);
         if (needsPwd && !password) throw new Error('NEED_PASSWORD');
@@ -1073,7 +1092,15 @@
           return needsPwd ? await PDFDocument.load(arrayBuf, { password }) : await PDFDocument.load(arrayBuf);
         } catch (e) {
           if (!needsPwd) throw e;
-          throw classifyDecryptError(e);
+          const classified = classifyDecryptError(e);
+          if (classified.message === 'INCORRECT_PASSWORD') throw classified;
+          try {
+            const decryptedBytes = await decryptWithFallback(arrayBuf, password);
+            return await PDFDocument.load(decryptedBytes);
+          } catch (fallbackErr) {
+            classified.detail += ' | fallback: ' + ((fallbackErr && fallbackErr.message) || String(fallbackErr));
+            throw classified;
+          }
         }
       }
 
@@ -1081,8 +1108,10 @@
       // 也可能是不受支持的加密算法等其他原因。只有错误信息明确提到密码时才归类为"密码错误"，
       // 避免把"其实密码是对的，但库无法处理"的情况误报给用户。
       function classifyDecryptError(e) {
-        const msg = (e && e.message) || '';
-        return /incorrect password/i.test(msg) ? new Error('INCORRECT_PASSWORD') : new Error('DECRYPT_FAILED');
+        const msg = (e && e.message) || String(e);
+        const err = /incorrect password/i.test(msg) ? new Error('INCORRECT_PASSWORD') : new Error('DECRYPT_FAILED');
+        err.detail = msg;
+        return err;
       }
 
       function handleError(err, idx) {
@@ -1090,7 +1119,7 @@
         if (!entry) return;
         if (err.message === 'NEED_PASSWORD') { entry.status = 'error'; setStatus(`⚠️ ${t('needPassword')}`, 'warn'); }
         else if (err.message === 'INCORRECT_PASSWORD') { entry.status = 'error'; setStatus(`❌ ${t('wrongPassword')}`, 'warn'); }
-        else if (err.message === 'DECRYPT_FAILED') { entry.status = 'error'; setStatus(`❌ ${t('decryptFailed')}`, 'error'); }
+        else if (err.message === 'DECRYPT_FAILED') { entry.status = 'error'; setStatus(`❌ ${t('decryptFailed')}${err.detail ? `<br><span style="font-size:0.7rem;opacity:0.7;word-break:break-all;">[${escapeHtml(err.detail)}]</span>` : ''}`, 'error'); }
         else { setStatus(`❌ ${err.message}`, 'error'); }
         renderFileList();
       }
@@ -1397,8 +1426,17 @@
         setStatus(`✅ ${t('splitSuccess')} (${totalPages}${t('pages')})`, 'success');
       }
 
+      // 当 pdf-lib（及AES-256兜底库）都无法处理某种加密方式时（例如很常见的 V4/R4 AESV2 128位加密），
+      // 改用 pdf.js 把每一页渲染成图片再重新拼成PDF——pdf.js 对各种加密方式的兼容性远好于 pdf-lib，
+      // 用它读取密码保护的PDF基本没问题。代价：文字不再可选中/复制，体积会变大，但至少能拿到无密码的文件。
+      async function removeProtectionViaRasterize(file, password) {
+        const pageImages = await renderPdfToImages(file, password, { scale: 2.0, quality: 0.92 });
+        return await createPdfFromImages(pageImages);
+      }
+
       async function doRemovePassword(startIdx) {
         const { PDFDocument } = PDFLib;
+        let usedRasterFallback = false;
         for (let i = startIdx; i < fileEntries.length; i++) {
           setProgress((i / fileEntries.length) * 100, `${t('processing')} ${fileEntries[i].file.name}`);
           try {
@@ -1410,10 +1448,19 @@
             const bytes = await newDoc.save();
             download(new Blob([bytes], { type: 'application/pdf' }), fileEntries[i].file.name.replace(/\.pdf$/i, '') + '_no_password.pdf');
             fileEntries[i].status = 'ok';
-          } catch (err) { handleError(err, i); return; }
+          } catch (err) {
+            if (err.message !== 'DECRYPT_FAILED') { handleError(err, i); return; }
+            try {
+              setProgress((i / fileEntries.length) * 100, `${fileEntries[i].file.name}: ${t('compatMode')}`);
+              const bytes = await removeProtectionViaRasterize(fileEntries[i].file, getPasswordForFile(i));
+              download(new Blob([bytes], { type: 'application/pdf' }), fileEntries[i].file.name.replace(/\.pdf$/i, '') + '_no_password.pdf');
+              fileEntries[i].status = 'ok';
+              usedRasterFallback = true;
+            } catch (fallbackErr) { handleError(err, i); return; }
+          }
         }
         fileEntries.forEach(e => e.status = undefined);
-        setStatus(`✅ ${t('extractSuccess')}`, 'success');
+        setStatus(`✅ ${t('extractSuccess')}${usedRasterFallback ? ` (${t('compatModeNote')})` : ''}`, 'success');
         renderFileList();
       }
 
@@ -1452,13 +1499,18 @@
         const angleVal = parseFloat(document.getElementById('watermarkAngle')?.value || '45');
         const opacityVal = parseFloat(document.getElementById('watermarkOpacity')?.value || '0.1');
         const fontSize = parseInt(document.getElementById('watermarkSize')?.value || '40');
-        const arrayBuf = await fileEntries[0].file.arrayBuffer();
-        const needsPwd = fileEntries[0].encrypted ?? await checkEncrypted(fileEntries[0].file);
         let pdfDoc;
-        try {
-          if (needsPwd) { const password = getPasswordForFile(0); if (!password) { setStatus(`⚠️ ${t('needPassword')}`, 'warn'); return; } pdfDoc = await PDFDocument.load(arrayBuf, { password }); }
-          else { pdfDoc = await PDFDocument.load(arrayBuf); }
-        } catch (err) { handleError(classifyDecryptError(err), 0); return; }
+        let usedRasterFallback = false;
+        try { pdfDoc = await loadPdfDoc(fileEntries[0].file, getPasswordForFile(0), fileEntries[0].encrypted ?? null); }
+        catch (err) {
+          if (err.message !== 'DECRYPT_FAILED') { handleError(err, 0); return; }
+          try {
+            setProgress(5, t('compatMode'));
+            const flatBytes = await removeProtectionViaRasterize(fileEntries[0].file, getPasswordForFile(0));
+            pdfDoc = await PDFDocument.load(flatBytes);
+            usedRasterFallback = true;
+          } catch (fallbackErr) { handleError(err, 0); return; }
+        }
         setProgress(20, '生成水印...');
         const watermarkBlob = await renderTextToImage(text, { fontSize, angle: -angleVal, opacity: opacityVal });
         const watermarkBytes = await watermarkBlob.arrayBuffer();
@@ -1489,7 +1541,7 @@
         const pdfBytes = await pdfDoc.save(); setProgress(100);
         const originalName = fileEntries[0].file.name.replace(/\.pdf$/i, '');
         download(new Blob([pdfBytes], { type: 'application/pdf' }), `${originalName}_watermarked.pdf`);
-        setStatus(`✅ ${t('watermarkSuccess')}`, 'success');
+        setStatus(`✅ ${t('watermarkSuccess')}${usedRasterFallback ? ` (${t('compatModeNote')})` : ''}`, 'success');
       }
 
       async function doExtractPages() {

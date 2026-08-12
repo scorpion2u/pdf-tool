@@ -752,7 +752,7 @@
     <div class="top-bar">
       <h1>📄 PDF工具箱</h1>
       <div class="menu-container" id="menuContainer">
-        <button class="menu-button" id="menuButton" aria-label="菜单">☰</button>
+        <button class="menu-button" id="menuButton" aria-label="菜单" aria-haspopup="true" aria-expanded="false">☰</button>
         <div class="menu-dropdown" id="menuDropdown">
           <div class="menu-item" id="installAppBtn">📱 安装应用</div>
           <div class="menu-item" id="languageMenuItem">🌐 语言 / Language</div>
@@ -773,7 +773,7 @@
     </div>
 
     <div class="card" id="toolCard"></div>
-    <div id="statusArea" style="text-align: center;"></div>
+    <div id="statusArea" style="text-align: center;" aria-live="polite" role="status"></div>
   </div>
 
   <script>
@@ -887,6 +887,7 @@
       function t(key) { return LANGUAGES[currentLang]?.[key] || LANGUAGES['zh-CN'][key] || key; }
 
       function updateAllTexts() {
+        document.documentElement.lang = currentLang === 'zh-CN' ? 'zh-CN' : 'en';
         document.querySelector('h1').textContent = t('menuTitle');
         document.querySelector('.subtitle').textContent = t('subtitle');
         const labels = ['removePassword', 'split', 'merge', 'compress', 'watermark', 'extractPages', 'pdfToImages', 'imagesToPdf'];
@@ -1025,7 +1026,8 @@
               canvas.height = vp.height;
               await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
               const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
-              pages.push({ width: vp.width, height: vp.height, data: await blob.arrayBuffer(), blob });
+              pages.push({ width: vp.width, height: vp.height, blob });
+              canvas.width = 0; canvas.height = 0; // 尽快释放canvas像素内存
             }
             resolve(pages);
           }).catch(err => {
@@ -1039,9 +1041,7 @@
         const { PDFDocument } = PDFLib;
         const doc = await PDFDocument.create();
         for (const img of pageImages) {
-          let jpg;
-          if (img.data instanceof ArrayBuffer) jpg = await doc.embedJpg(img.data);
-          else if (img.blob) jpg = await doc.embedJpg(await img.blob.arrayBuffer());
+          const jpg = await doc.embedJpg(await img.blob.arrayBuffer());
           const page = doc.addPage([img.width, img.height]);
           page.drawImage(jpg, { x: 0, y: 0, width: img.width, height: img.height });
         }
@@ -1053,17 +1053,18 @@
         catch (e) { return !!(e.name === 'PasswordException' || (e.message && e.message.includes('password'))); }
       }
 
-      async function processPdf(file, password = '') {
-        const needsPwd = await checkEncrypted(file);
+      async function processPdf(file, password = '', knownEncrypted = null) {
+        const needsPwd = knownEncrypted !== null ? knownEncrypted : await checkEncrypted(file);
         if (needsPwd && !password) throw new Error('NEED_PASSWORD');
         return { pageImages: await renderPdfToImages(file, password, getRenderOptions()), isEncrypted: needsPwd };
       }
 
       // 无损加载：直接用 pdf-lib 打开原始 PDF 结构（不栅格化），
       // 用于合并/拆分/提取页面等只需要"搬运页面"而不需要重新渲染画面的操作。
-      async function loadPdfDoc(file, password = '') {
+      // knownEncrypted: 若调用方已经知道加密状态（如文件列表已检测过），传入以跳过重复解析整份文件。
+      async function loadPdfDoc(file, password = '', knownEncrypted = null) {
         const { PDFDocument } = PDFLib;
-        const needsPwd = await checkEncrypted(file);
+        const needsPwd = knownEncrypted !== null ? knownEncrypted : await checkEncrypted(file);
         if (needsPwd && !password) throw new Error('NEED_PASSWORD');
         const arrayBuf = await file.arrayBuffer();
         try {
@@ -1097,37 +1098,44 @@
         setTimeout(() => { initCustomSelects(); enhanceFileDropAreas(); }, 50);
       }
 
+      function pwdSectionHTML(labelKey = 'passwordSingle') {
+        return `<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t(labelKey)}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div>`;
+      }
+      function samePwdRowHTML() {
+        return `<div class="same-pwd-row" id="samePwdRow" style="display:none;"><input type="checkbox" id="samePwdCheck" checked><label for="samePwdCheck">${t('samePassword')}</label></div>`;
+      }
+
       function fileDropArea(multiple, title, accept = '.pdf') {
         const iconMap = { merge: '📎', split: '✂️', removePassword: '🔓', compress: '📦', watermark: '💧', extractPages: '📑', pdfToImages: '🔄', imagesToPdf: '📸' };
         return `<div class="file-area" id="fileArea"><div class="file-icon">${iconMap[currentTool]||'📂'}</div><div class="file-label">${title}</div><div class="file-hint">${multiple ? t('supportMulti') : t('supportSingle')} (${accept})</div><input type="file" id="fileAreaInput" class="file-input" accept="${accept}" ${multiple ? 'multiple' : ''}></div><div id="fileAreaList" class="file-list"></div>`;
       }
 
       function buildMergeUI() {
-        return `${fileDropArea(true, t('selectPdfMerge'))}<div class="same-pwd-row" id="samePwdRow" style="display:none;"><input type="checkbox" id="samePwdCheck" checked><label for="samePwdCheck">${t('samePassword')}</label></div><div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordLabel')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startMerge')}</button><button class="btn-secondary" id="clearBtn">${t('clearList')}</button></div>`;
+        return `${fileDropArea(true, t('selectPdfMerge'))}${samePwdRowHTML()}${pwdSectionHTML('passwordLabel')}<div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startMerge')}</button><button class="btn-secondary" id="clearBtn">${t('clearList')}</button></div>`;
       }
 
       function buildSplitUI() {
-        return `${fileDropArea(false, t('selectPdfSplit'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div style="margin-top:0.8rem;display:flex;gap:0.6rem;align-items:center;font-weight:600;color:#333;"><label>${t('splitMode')}</label><select id="splitMode"><option value="pages">${t('byPage')}</option><option value="range">${t('byRange')}</option></select></div><div id="rangeInputWrap" style="margin-top:0.6rem;display:none;"><input type="text" id="rangeInput" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.6rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;font-weight:600;font-family:inherit;"></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startSplit')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfSplit'))}${pwdSectionHTML()}<div style="margin-top:0.8rem;display:flex;gap:0.6rem;align-items:center;font-weight:600;color:#333;"><label>${t('splitMode')}</label><select id="splitMode"><option value="pages">${t('byPage')}</option><option value="range">${t('byRange')}</option></select></div><div id="rangeInputWrap" style="margin-top:0.6rem;display:none;"><input type="text" id="rangeInput" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.6rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;font-weight:600;font-family:inherit;"></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startSplit')}</button></div>`;
       }
 
       function buildRemovePwdUI() {
-        return `${fileDropArea(true, t('selectPdfRemovePwd'))}<div class="same-pwd-row" id="samePwdRow" style="display:none;"><input type="checkbox" id="samePwdCheck" checked><label for="samePwdCheck">${t('samePassword')}</label></div><div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordLabel')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="highlight-box"><span>🔓</span><div>${t('removePwdInfo')}</div></div><div class="btn-group"><button class="btn-primary btn-danger" id="actionBtn">${t('startRemovePwd')}</button><button class="btn-secondary" id="clearBtn">${t('clearList')}</button></div>`;
+        return `${fileDropArea(true, t('selectPdfRemovePwd'))}${samePwdRowHTML()}${pwdSectionHTML('passwordLabel')}<div class="highlight-box"><span>🔓</span><div>${t('removePwdInfo')}</div></div><div class="btn-group"><button class="btn-primary btn-danger" id="actionBtn">${t('startRemovePwd')}</button><button class="btn-secondary" id="clearBtn">${t('clearList')}</button></div>`;
       }
 
       function buildCompressUI() {
-        return `${fileDropArea(false, t('selectPdfCompress'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="quality-selector"><label>${t('clarity')}</label><select id="renderScale"><option value="1.0" selected>${t('sd')}</option><option value="1.5">${t('hd')}</option><option value="2.0">${t('uhd')}</option></select><label>${t('quality')}</label><select id="jpegQuality"><option value="0.5">${t('maxCompress')}</option><option value="0.6" selected>${t('saveSpace')}</option><option value="0.75">${t('balanced')}</option><option value="0.85">${t('highQuality')}</option></select></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startCompress')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfCompress'))}${pwdSectionHTML()}<div class="quality-selector"><label>${t('clarity')}</label><select id="renderScale"><option value="1.0" selected>${t('sd')}</option><option value="1.5">${t('hd')}</option><option value="2.0">${t('uhd')}</option></select><label>${t('quality')}</label><select id="jpegQuality"><option value="0.5">${t('maxCompress')}</option><option value="0.6" selected>${t('saveSpace')}</option><option value="0.75">${t('balanced')}</option><option value="0.85">${t('highQuality')}</option></select></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startCompress')}</button></div>`;
       }
 
       function buildWatermarkUI() {
-        return `${fileDropArea(false, t('selectPdfWatermark'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="watermark-settings"><div class="watermark-row"><label>${t('watermarkText')}</label><input type="text" id="watermarkText" value="${t('watermarkTextPlaceholder')}" style="padding:0.5rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 2px 2px 5px #bebebe,inset -2px -2px 5px #ffffff;font-weight:600;font-family:inherit;"></div><div class="watermark-row"><label>${t('watermarkPosition')}</label><select id="watermarkPosition"><option value="center">${t('positionCenter')}</option><option value="top">${t('positionTop')}</option><option value="bottom">${t('positionBottom')}</option><option value="full" selected>${t('positionFull')}</option></select></div><div class="watermark-row"><label>${t('watermarkAngle')}</label><input type="range" id="watermarkAngle" min="0" max="90" value="45"><span class="range-value" id="angleVal">45°</span></div><div class="watermark-row"><label>${t('watermarkOpacity')}</label><input type="range" id="watermarkOpacity" min="0.05" max="1" step="0.05" value="0.1"><span class="range-value" id="opacityVal">0.1</span></div><div class="watermark-row"><label>${t('watermarkSize')}</label><input type="range" id="watermarkSize" min="10" max="100" value="40"><span class="range-value" id="sizeVal">40</span></div></div><div class="highlight-box"><span>💧</span><div>${t('watermarkInfo')}</div></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startWatermark')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfWatermark'))}${pwdSectionHTML()}<div class="watermark-settings"><div class="watermark-row"><label>${t('watermarkText')}</label><input type="text" id="watermarkText" value="${t('watermarkTextPlaceholder')}" style="padding:0.5rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 2px 2px 5px #bebebe,inset -2px -2px 5px #ffffff;font-weight:600;font-family:inherit;"></div><div class="watermark-row"><label>${t('watermarkPosition')}</label><select id="watermarkPosition"><option value="center">${t('positionCenter')}</option><option value="top">${t('positionTop')}</option><option value="bottom">${t('positionBottom')}</option><option value="full" selected>${t('positionFull')}</option></select></div><div class="watermark-row"><label>${t('watermarkAngle')}</label><input type="range" id="watermarkAngle" min="0" max="90" value="45"><span class="range-value" id="angleVal">45°</span></div><div class="watermark-row"><label>${t('watermarkOpacity')}</label><input type="range" id="watermarkOpacity" min="0.05" max="1" step="0.05" value="0.1"><span class="range-value" id="opacityVal">0.1</span></div><div class="watermark-row"><label>${t('watermarkSize')}</label><input type="range" id="watermarkSize" min="10" max="100" value="40"><span class="range-value" id="sizeVal">40</span></div></div><div class="highlight-box"><span>💧</span><div>${t('watermarkInfo')}</div></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startWatermark')}</button></div>`;
       }
 
       function buildExtractPagesUI() {
-        return `${fileDropArea(false, t('selectPdfExtractPages'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div style="margin-top:0.8rem;"><label style="font-weight:700;color:#333;">${t('extractRange')}</label><input type="text" id="extractRange" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.6rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;margin-top:0.4rem;font-weight:600;font-family:inherit;"></div><div class="info-box">💡 ${t('rangeInfo')}</div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startExtractPages')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfExtractPages'))}${pwdSectionHTML()}<div style="margin-top:0.8rem;"><label style="font-weight:700;color:#333;">${t('extractRange')}</label><input type="text" id="extractRange" placeholder="${t('rangePlaceholder')}" style="width:100%;padding:0.6rem;border-radius:2rem;border:none;background:#e0e0e0;box-shadow:inset 3px 3px 6px #bebebe,inset -3px -3px 6px #ffffff;margin-top:0.4rem;font-weight:600;font-family:inherit;"></div><div class="info-box">💡 ${t('rangeInfo')}</div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startExtractPages')}</button></div>`;
       }
 
       function buildPdfToImagesUI() {
-        return `${fileDropArea(false, t('selectPdfToImages'))}<div id="globalPwdSection" class="password-section" style="display:none;"><span>${t('passwordSingle')}</span><input type="password" id="globalPassword" class="password-input" placeholder="${t('passwordPlaceholder')}"><button class="toggle-pwd" data-target="globalPassword">${t('show')}</button></div><div class="quality-selector"><label>${t('clarity')}</label><select id="renderScale"><option value="1.5">${t('hd')}</option><option value="2.0" selected>${t('uhd')}</option><option value="3.0">3.0x</option></select><label>${t('quality')}</label><select id="jpegQuality"><option value="0.85">${t('highQuality')}</option><option value="0.92" selected>${t('balanced')}</option><option value="1.0">${t('original')}</option></select></div><div class="output-format-row"><label>${t('outputFormat')}</label><select id="outputFormat"><option value="jpeg">JPEG</option><option value="png">PNG</option></select><label style="margin-left:0.8rem;">${t('zipDownload')}</label><input type="checkbox" id="zipDownload"></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startConvert')}</button></div>`;
+        return `${fileDropArea(false, t('selectPdfToImages'))}${pwdSectionHTML()}<div class="quality-selector"><label>${t('clarity')}</label><select id="renderScale"><option value="1.5">${t('hd')}</option><option value="2.0" selected>${t('uhd')}</option><option value="3.0">3.0x</option></select><label>${t('quality')}</label><select id="jpegQuality"><option value="0.85">${t('highQuality')}</option><option value="0.92" selected>${t('balanced')}</option><option value="1.0">${t('original')}</option></select></div><div class="output-format-row"><label>${t('outputFormat')}</label><select id="outputFormat"><option value="jpeg">JPEG</option><option value="png">PNG</option></select><label style="margin-left:0.8rem;">${t('zipDownload')}</label><input type="checkbox" id="zipDownload"></div><div class="btn-group"><button class="btn-primary" id="actionBtn">${t('startConvert')}</button></div>`;
       }
 
       function buildImagesToPdfUI() {
@@ -1154,7 +1162,7 @@
           } else if (!isImg && entry.encrypted && entry.status === 'error' && useSame) {
             pwdHtml = `<button class="btn-retry" data-idx="${idx}">🔄</button>`;
           }
-          return `<div class="file-list-item" draggable="true" data-idx="${idx}"><span class="drag-handle">⠿</span><div class="file-info"><span class="file-idx">${idx+1}</span><span class="file-name">${isImg ? '🖼️' : '📄'} ${escapeHtml(entry.file.name)}</span><span class="file-size">(${(entry.file.size/1024).toFixed(0)}KB)</span>${eBadge}${sBadge}</div><div class="file-actions">${pwdHtml}<button class="btn-icon remove-btn" data-idx="${idx}">✕</button></div></div>`;
+          return `<div class="file-list-item" draggable="true" data-idx="${idx}"><span class="drag-handle">⠿</span><div class="file-info"><span class="file-idx">${idx+1}</span><span class="file-name">${isImg ? '🖼️' : '📄'} ${escapeHtml(entry.file.name)}</span><span class="file-size">(${formatFileSize(entry.file.size)})</span>${eBadge}${sBadge}</div><div class="file-actions">${pwdHtml}<button class="btn-icon remove-btn" data-idx="${idx}">✕</button></div></div>`;
         }).join('');
         bindListEvents();
       }
@@ -1191,6 +1199,7 @@
       function isSamePasswordMode() { const c = document.getElementById('samePwdCheck'); return c ? c.checked : true; }
       function getPasswordForFile(idx) { return isSamePasswordMode() ? (document.getElementById('globalPassword')?.value || '') : (fileEntries[idx]?.password || ''); }
       function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function formatFileSize(bytes) { return bytes >= 1024 * 1024 ? (bytes / (1024 * 1024)).toFixed(1) + 'MB' : (bytes / 1024).toFixed(0) + 'KB'; }
 
       function download(blob, name) {
         const url = URL.createObjectURL(blob);
@@ -1317,7 +1326,7 @@
         for (let i = startIdx; i < fileEntries.length; i++) {
           setProgress((i / fileEntries.length) * 100, `${t('processing')} ${fileEntries[i].file.name}`);
           try {
-            const srcDoc = await loadPdfDoc(fileEntries[i].file, getPasswordForFile(i));
+            const srcDoc = await loadPdfDoc(fileEntries[i].file, getPasswordForFile(i), fileEntries[i].encrypted ?? null);
             const copiedPages = await mergedDoc.copyPages(srcDoc, srcDoc.getPageIndices());
             copiedPages.forEach(p => mergedDoc.addPage(p));
             fileEntries[i].status = 'ok';
@@ -1338,7 +1347,7 @@
 
         const { PDFDocument } = PDFLib;
         let srcDoc;
-        try { srcDoc = await loadPdfDoc(fileEntries[0].file, getPasswordForFile(0)); }
+        try { srcDoc = await loadPdfDoc(fileEntries[0].file, getPasswordForFile(0), fileEntries[0].encrypted ?? null); }
         catch (err) { handleError(err, 0); return; }
         const totalPages = srcDoc.getPageCount();
         const mode = document.getElementById('splitMode')?.value || 'pages';
@@ -1382,7 +1391,7 @@
         for (let i = startIdx; i < fileEntries.length; i++) {
           setProgress((i / fileEntries.length) * 100, `${t('processing')} ${fileEntries[i].file.name}`);
           try {
-            const srcDoc = await loadPdfDoc(fileEntries[i].file, getPasswordForFile(i));
+            const srcDoc = await loadPdfDoc(fileEntries[i].file, getPasswordForFile(i), fileEntries[i].encrypted ?? null);
             // 通过复制到一份全新的、无加密设置的文档来彻底剥离密码/加密属性
             const newDoc = await PDFDocument.create();
             const copiedPages = await newDoc.copyPages(srcDoc, srcDoc.getPageIndices());
@@ -1399,7 +1408,10 @@
 
       async function doCompress() {
         setProgress(0, t('processing'));
-        const { pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0));
+        let pageImages;
+        try {
+          ({ pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0), fileEntries[0].encrypted ?? null));
+        } catch (err) { handleError(err, 0); return; }
         const bytes = await createPdfFromImages(pageImages);
         download(new Blob([bytes], { type: 'application/pdf' }), 'compressed.pdf');
         setStatus(`✅ ${t('compressSuccess')}`, 'success');
@@ -1430,10 +1442,12 @@
         const opacityVal = parseFloat(document.getElementById('watermarkOpacity')?.value || '0.1');
         const fontSize = parseInt(document.getElementById('watermarkSize')?.value || '40');
         const arrayBuf = await fileEntries[0].file.arrayBuffer();
-        const needsPwd = await checkEncrypted(fileEntries[0].file);
+        const needsPwd = fileEntries[0].encrypted ?? await checkEncrypted(fileEntries[0].file);
         let pdfDoc;
-        if (needsPwd) { const password = getPasswordForFile(0); if (!password) { setStatus(t('needPassword'), 'warn'); return; } pdfDoc = await PDFDocument.load(arrayBuf, { password }); }
-        else { pdfDoc = await PDFDocument.load(arrayBuf); }
+        try {
+          if (needsPwd) { const password = getPasswordForFile(0); if (!password) { setStatus(`⚠️ ${t('needPassword')}`, 'warn'); return; } pdfDoc = await PDFDocument.load(arrayBuf, { password }); }
+          else { pdfDoc = await PDFDocument.load(arrayBuf); }
+        } catch (err) { handleError(new Error('INCORRECT_PASSWORD'), 0); return; }
         setProgress(20, '生成水印...');
         const watermarkBlob = await renderTextToImage(text, { fontSize, angle: -angleVal, opacity: opacityVal });
         const watermarkBytes = await watermarkBlob.arrayBuffer();
@@ -1471,7 +1485,7 @@
         setProgress(0, t('processing'));
         const { PDFDocument } = PDFLib;
         let srcDoc;
-        try { srcDoc = await loadPdfDoc(fileEntries[0].file, getPasswordForFile(0)); }
+        try { srcDoc = await loadPdfDoc(fileEntries[0].file, getPasswordForFile(0), fileEntries[0].encrypted ?? null); }
         catch (err) { handleError(err, 0); return; }
         const rangeStr = document.getElementById('extractRange')?.value || '';
         const indices = parseRange(rangeStr, srcDoc.getPageCount());
@@ -1488,7 +1502,10 @@
 
       async function doPdfToImages() {
         setProgress(0, t('processing'));
-        const { pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0));
+        let pageImages;
+        try {
+          ({ pageImages } = await processPdf(fileEntries[0].file, getPasswordForFile(0), fileEntries[0].encrypted ?? null));
+        } catch (err) { handleError(err, 0); return; }
         const format = document.getElementById('outputFormat')?.value || 'jpeg';
         const useZip = document.getElementById('zipDownload')?.checked ?? false;
         if (pageImages.length === 1 && !useZip) { const blob = format === 'png' ? await jpegToPng(pageImages[0].blob) : pageImages[0].blob; download(blob, `page_1.${format}`); }
@@ -1532,8 +1549,9 @@
         renderFileList();
       }
 
-      document.getElementById('menuButton').addEventListener('click', function(e) { e.stopPropagation(); var dd = document.getElementById('menuDropdown'); if (dd.classList.contains('show')) { dd.classList.remove('show'); } else { dd.classList.add('show'); } });
-      document.addEventListener('click', function(e) { if (!e.target.closest('#menuContainer')) { var dd = document.getElementById('menuDropdown'); if (dd) dd.classList.remove('show'); } });
+      document.getElementById('menuButton').addEventListener('click', function(e) { e.stopPropagation(); var btn = this; var dd = document.getElementById('menuDropdown'); var open = dd.classList.toggle('show'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+      document.addEventListener('click', function(e) { if (!e.target.closest('#menuContainer')) { var dd = document.getElementById('menuDropdown'); if (dd) dd.classList.remove('show'); document.getElementById('menuButton')?.setAttribute('aria-expanded', 'false'); } });
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { var dd = document.getElementById('menuDropdown'); if (dd) dd.classList.remove('show'); document.getElementById('menuButton')?.setAttribute('aria-expanded', 'false'); document.querySelectorAll('.custom-select-dropdown.open').forEach(d => { d.classList.remove('open'); d.previousElementSibling?.classList.remove('open'); }); document.querySelector('div[style*="position:fixed"][style*="z-index:10000"]')?.remove(); } });
       document.getElementById('installAppBtn').addEventListener('click', function() { document.getElementById('menuDropdown').classList.remove('show'); installPWA(); });
       document.getElementById('languageMenuItem').addEventListener('click', function() { document.getElementById('menuDropdown').classList.remove('show'); showLanguageSelector(); });
       window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); window._deferredPrompt = e; updateMenuLanguage(); });
